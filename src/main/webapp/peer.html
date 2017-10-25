@@ -46,10 +46,18 @@
 			<input type="text" class="form-control" value="stream1" id="streamName"
 				placeholder="Type stream name"> <span
 				class="input-group-btn">
-				<button onclick="Join()" class="btn btn-default" disabled id="join_button">Join</button>
-				<button onclick="Leave()" class="btn btn-default" disabled id="leave_button">Leave</button>
+				<button onclick="join()" class="btn btn-default" disabled id="join_button">Join</button>
+				<button onclick="leave()" class="btn btn-default" disabled id="leave_button">Leave</button>
 			</span>
 		</div>
+		<div style="padding:10px">
+			<button onclick="turnOffLocalCamera()" class="btn btn-default"  >Turn off Camera</button>
+			<button onclick="turnOnLocalCamera()" class="btn btn-default"  >Turn on Camera</button>
+			
+			<button onclick="muteLocalMic()" class="btn btn-default"  >Mute Local Mic</button>
+			<button onclick="unmuteLocalMic()" class="btn btn-default"  >Unmute Local Mic</button>	
+		</div>
+		
 	</div>
     
     <script>
@@ -69,24 +77,55 @@
 	};
 	*/
 
-	var sdpConstraints = null;
-	/*{
-		'mandatory' : {
-			'OfferToReceiveAudio' : true,
-			'OfferToReceiveVideo' : true
-		}
-	};*/
-
+	var sdpConstraints = 
+	{
+		OfferToReceiveAudio : true,
+		OfferToReceiveVideo : true
+			
+	};
+	
 	
 
 	var streamNameBox = document.getElementById("streamName");
 
-	function Join() {
+	function join() {
 		webRTCAdaptor.join(streamNameBox.value);
 	}
 
-	function Leave() {
+	function leave() {
 		webRTCAdaptor.leave();
+	}
+	
+	function turnOffLocalCamera() {
+		webRTCAdaptor.turnOffLocalCamera();
+	}
+	
+	function turnOnLocalCamera() {
+		webRTCAdaptor.turnOnLocalCamera();
+	}
+	
+	function muteLocalMic(){
+		webRTCAdaptor.muteLocalMic();
+	}
+	
+	function unmuteLocalMic() {
+		webRTCAdaptor.unmuteLocalMic();
+	}
+	
+	function closeRemoteCamera() {
+		webRTCAdaptor.closeRemoteCamera();
+	}
+	
+	function openRemoteCamera() {
+		webRTCAdaptor.openRemoteCamera();
+	}
+	
+	function muteRemoteMic(){
+		webRTCAdaptor.muteRemoteMic();
+	}
+	
+	function unmuteRemoteMic() {
+		webRTCAdaptor.unmuteRemoteMic();
 	}
 	
 	  
@@ -122,6 +161,8 @@
 			  }
 		  },
 		  callbackError: function(error) {
+			  //some of the possible errors, NotFoundError, SecurityError,PermissionDeniedError
+			  
 			  console.log("error callback: " + error);
 			  alert(error);
 		  }

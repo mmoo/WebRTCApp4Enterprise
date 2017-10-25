@@ -12,9 +12,10 @@ function WebRTCAdaptor(initialValues)
 	thiz.peerconnection_config = null;
 	thiz.sdp_constraints = null;
 	thiz.remotePeerConnection = null;
-	thiz.initializer = false;
 	thiz.webSocketAdaptor = null;
 	thiz.streamName = null;
+	thiz.videoTrackSender = null;
+	thiz.audioTrackSender = null;
 	/*
 	  {
 		  websocket_url:"ws://" + location.hostname + ":8081/WebRTCApp4",
@@ -43,9 +44,6 @@ function WebRTCAdaptor(initialValues)
 		callbackError("WebSocketNotSupported");
 		return;
 	}
-
-
-	console.log("websocket url: " + this.websocket_url);
 
 
 	this.join = function(streamName) {
@@ -78,20 +76,58 @@ function WebRTCAdaptor(initialValues)
 		thiz.closePeerConnection();
 	}
 
-	gotStream = function (stream) {
+	this.gotStream = function (stream) {
+
 		thiz.localStream = stream;
 		thiz.localVideo.srcObject = stream;
-		thiz.webSocketAdaptor = new thiz.WebSocketAdaptor();
+		if (thiz.webSocketAdaptor == null || thiz.webSocketAdaptor.isConnected() == false) {
+			thiz.webSocketAdaptor = new thiz.WebSocketAdaptor();
+		}
+
 	};
 
-	navigator.mediaDevices.getUserMedia(mediaConstraints)
-	.then(gotStream)
-	.catch(function(error) {
-		thiz.callbackError(error.name);		
-	});
+	if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != "false") 
+	{
+		//var media_video_constraint = { video: thiz.mediaConstraints.video };
+		navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
+		.then(function(stream){
+
+			//this trick, getting audio and video separately, make us add or remove tracks on the fly
+			var audioTrack = stream.getAudioTracks();
+			if (audioTrack.length > 0) {
+				stream.removeTrack(audioTrack[0]);
+			}
+			
+			//now get only audio to add this stream
+			if (typeof thiz.mediaConstraints.audio != "undefined" && thiz.mediaConstraints.audio != "false") {
+				var media_audio_constraint = { audio: thiz.mediaConstraints.audio};
+				navigator.mediaDevices.getUserMedia(media_audio_constraint)
+				.then(function(audioStream) {
+					stream.addTrack(audioStream.getAudioTracks()[0]);
+					thiz.gotStream(stream);
+				})
+				.catch(function(error) {
+					thiz.callbackError(error.name);		
+				});
+			}
+		})
+		.catch(function(error) {
+			thiz.callbackError(error.name);		
+		});
+	}
+	else {
+		var media_audio_constraint = { video: thiz.mediaConstraints.audio };
+		navigator.mediaDevices.getUserMedia(media_audio_constraint)
+		.then(thiz.gotStream)
+		.catch(function(error) {
+			thiz.callbackError(error.name);		
+		});
+	}
+
 
 
 	this.onTrack = function(event) {
+		console.log("onTrack");
 		thiz.remoteVideo.srcObject = event.streams[0];
 	}
 
@@ -114,13 +150,13 @@ function WebRTCAdaptor(initialValues)
 	this.initPeerConnection = function() {
 		if (thiz.remotePeerConnection == null) {
 			thiz.remotePeerConnection = new RTCPeerConnection(thiz.peerconnection_config);
+			thiz.remotePeerConnection.addStream(thiz.localStream);
 			thiz.remotePeerConnection.onicecandidate = thiz.iceCandidateReceived;
 			thiz.remotePeerConnection.ontrack = thiz.onTrack;
 		}
 	}
 
 	this.closePeerConnection = function() {
-		thiz.initializer = false;
 		if (thiz.remotePeerConnection != null
 				&& thiz.remotePeerConnection.signalingState != "closed") {
 			thiz.remotePeerConnection.close();
@@ -143,11 +179,161 @@ function WebRTCAdaptor(initialValues)
 	}
 
 
+	this.turnOffLocalCamera = function() {
+		if (thiz.remotePeerConnection != null) {
+			var senders = thiz.remotePeerConnection.getSenders();
+			var videoTrackSender = null;
+
+
+			for (index in senders) {
+				if (senders[index].track.kind == "video") {
+					videoTrackSender = senders[index];
+					break;
+				}
+			}
+			if (videoTrackSender != null) {
+				thiz.remotePeerConnection.removeTrack(videoTrackSender);
+				thiz.localStream.removeTrack(videoTrackSender.track);
+				thiz.localVideo.srcObject = thiz.localStream;
+
+				thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
+				.then(thiz.gotDescription)
+				.catch(function () {
+					console.log("create offer error");
+				});
+			}
+
+
+		}
+		else {
+			this.callbackError("NoActiveConnection");
+		}
+	}
+
+	this.turnOnLocalCamera = function() {
+		if (thiz.remotePeerConnection != null) {
+			var senders = thiz.remotePeerConnection.getSenders();
+			var videoTrackSender = null;
+
+
+			for (index in senders) {
+				if (senders[index].track.kind == "video") {
+					videoTrackSender = senders[index];
+					break;
+				}
+			}
+			if (videoTrackSender == null) {
+				navigator.mediaDevices.getUserMedia({video:thiz.mediaConstraints.video})
+				.then(function(stream) {
+					thiz.localStream.addTrack(stream.getVideoTracks()[0]);
+					thiz.localVideo.srcObject = thiz.localStream;
+					thiz.remotePeerConnection.addTrack(thiz.localStream.getVideoTracks()[0], thiz.localStream);
+
+					thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
+					.then(thiz.gotDescription)
+					.catch(function () {
+						console.log("create offer error");
+					});
+				})
+				.catch(function(error) {
+					thiz.callbackError(error.name);		
+				});
+			}
+			else {
+				this.callbackError("VideoAlreadyActive");
+			}
+
+
+		}
+		else {
+			this.callbackError("NoActiveConnection");
+		}
+	}
+
+	this.muteLocalMic = function() {
+		if (thiz.remotePeerConnection != null) {
+			var senders = thiz.remotePeerConnection.getSenders();
+			var audioTrackSender = null;
+
+			for (index in senders) {
+				if (senders[index].track.kind == "audio") {
+					audioTrackSender = senders[index];
+					break;
+				}
+			}
+			if (audioTrackSender != null) {
+				thiz.remotePeerConnection.removeTrack(audioTrackSender);
+				thiz.localStream.removeTrack(audioTrackSender.track);
+				thiz.localVideo.srcObject = thiz.localStream;
+
+				thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
+				.then(thiz.gotDescription)
+				.catch(function () {
+					console.log("create offer error");
+				});
+			}
+			else {
+				this.callbackError("AudioAlreadyNotActive");
+			}
+
+		}
+		else {
+			this.callbackError("NoActiveConnection");
+		}
+	}
+
+	/**
+	 * if there is audio it calls callbackError with "AudioAlreadyActive" parameter
+	 */
+	this.unmuteLocalMic = function() {
+		if (thiz.remotePeerConnection != null) {
+			var senders = thiz.remotePeerConnection.getSenders();
+			var audioTrackSender = null;
+
+			for (index in senders) {
+				if (senders[index].track.kind == "audio") {
+					audioTrackSender = senders[index];
+					break;
+				}
+			}
+			if (audioTrackSender == null) {
+
+				navigator.mediaDevices.getUserMedia({audio:thiz.mediaConstraints.audio})
+				.then(function(stream) {
+					thiz.localStream.addTrack(stream.getAudioTracks()[0]);
+					thiz.localVideo.srcObject = thiz.localStream;
+					thiz.remotePeerConnection.addTrack(thiz.localStream.getAudioTracks()[0], thiz.localStream);
+
+					thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
+					.then(thiz.gotDescription)
+					.catch(function () {
+						console.log("create offer error");
+					});
+				})
+				.catch(function(error) {
+					thiz.callbackError(error.name);		
+				});
+
+			}
+			else {
+				this.callbackError("AudioAlreadyActive");
+			}
+
+		}
+		else {
+			this.callbackError("NoActiveConnection");
+		}
+	}
+
+	
 	this.WebSocketAdaptor = function() {
 		var wsConn = new WebSocket(thiz.websocket_url);
 
+		var connected = false;
+
 		wsConn.onopen = function() {
 			console.log("websocket connected");
+			connected = true;
 			thiz.callback("initialized");
 		}
 
@@ -155,21 +341,23 @@ function WebRTCAdaptor(initialValues)
 			wsConn.send(text);
 		}
 
+		this.isConnected = function() {
+			return connected;
+		}
+
 		wsConn.onmessage = function(event) {
 			obj = JSON.parse(event.data);
 			//console.log(obj);
 			if (obj.command == "start") {
-				thiz.initializer = true;
 				thiz.initPeerConnection();
 
 				console.log("received start command");
-				thiz.remotePeerConnection.addStream(thiz.localStream);
 
 				thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
-					.then(thiz.gotDescription)
-					.catch(function () {
-						console.log("create offer error");
-					});
+				.then(thiz.gotDescription)
+				.catch(function () {
+					console.log("create offer error");
+				});
 
 			}
 			else if (obj.command == "takeCandidate") {
@@ -190,15 +378,14 @@ function WebRTCAdaptor(initialValues)
 					sdp : obj.sdp,
 					type : obj.type
 				}));
-				console.log("received remote description:")
+				console.log("received remote description type:" + obj.type)
 
-				if (thiz.initializer == false) {
-					thiz.remotePeerConnection.addStream(thiz.localStream);
+				if (obj.type == "offer") {
 					thiz.remotePeerConnection.createAnswer(thiz.sdp_constraints)
-						.then(thiz.gotDescription)
-						.catch(function() {
-							console.log("create offer error");
-						});
+					.then(thiz.gotDescription)
+					.catch(function() {
+						console.log("create answer error");
+					});
 				}
 			}
 			else if (obj.command == "stop") {
@@ -219,6 +406,7 @@ function WebRTCAdaptor(initialValues)
 		}
 
 		wsConn.onclose = function(event) {
+			connected = false;
 			console.log("connection closed.");
 		}
 	};
