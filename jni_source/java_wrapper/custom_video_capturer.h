@@ -34,6 +34,9 @@ public:
     virtual bool IsScreencast() const override;
     void stop() ;
     void writeFrame(int8_t* data, int width, int height);
+    void writeMockFrame(int width, int height);
+
+  //  void writePacket(int8_t* data, int width, int height);
 
 private:
     DISALLOW_COPY_AND_ASSIGN(CustomVideoCapturer);
@@ -50,6 +53,7 @@ private:
     rtc::Thread*  m_startThread; //video capture thread
     //int device_id;
     webrtc::VideoFrame vframe;
+    rtc::scoped_refptr<webrtc::I420Buffer> mockBuffer;
 
 };
 

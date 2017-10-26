@@ -501,16 +501,20 @@ int32_t VirtualFileAudioDevice::CPULoad(uint16_t& load) const {
 	return -1;
 }
 
-bool VirtualFileAudioDevice::PlayoutWarning() const { LOG(WARNING) << __FUNCTION__;
-return false; }
-
-bool VirtualFileAudioDevice::PlayoutError() const {
-	LOG(WARNING) << __FUNCTION__;
+bool VirtualFileAudioDevice::PlayoutWarning() const {
+//	LOG(WARNING) << __FUNCTION__;
 	return false;
 }
 
-bool VirtualFileAudioDevice::RecordingWarning() const { LOG(WARNING) << __FUNCTION__;
-return false; }
+bool VirtualFileAudioDevice::PlayoutError() const {
+//	LOG(WARNING) << __FUNCTION__;
+	return false;
+}
+
+bool VirtualFileAudioDevice::RecordingWarning() const {
+//	LOG(WARNING) << __FUNCTION__;
+	return false;
+}
 
 bool VirtualFileAudioDevice::RecordingError() const {
 	LOG(WARNING) << __FUNCTION__;

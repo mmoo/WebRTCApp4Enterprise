@@ -87,6 +87,12 @@
 #include "custom_audio_device_module.h"
 #include "file_audio_device.h"
 #include "custom_video_capturer.h"
+#include "codecs/video_encoder_factory.h"
+#include "codecs/audio_encoder_factory.h"
+#include "webrtc/api/audio_codecs/builtin_audio_decoder_factory.h"
+#include "webrtc/api/audio_codecs/builtin_audio_encoder_factory.h"
+#include "adapt_bitrate.h"
+
 
 using cricket::WebRtcVideoDecoderFactory;
 using cricket::WebRtcVideoEncoderFactory;
@@ -836,7 +842,7 @@ private:
 			ScopedLocalRefFrame local_ref_frame(jni);
 			// Should we use the '.name' enum value here instead of converting the
 			// name to a string?
-					jstring j_name = JavaStringFromStdString(jni, it.second->display_name());
+			jstring j_name = JavaStringFromStdString(jni, it.second->display_name());
 			jstring j_value = JavaStringFromStdString(jni, it.second->ToString());
 			jobject j_element_value =
 					jni->NewObject(*j_value_class_, j_value_ctor_, j_name, j_value);
@@ -864,8 +870,8 @@ class JavaAudioSinkWrapper
 	JavaAudioSinkWrapper(JNIEnv* jni, jobject j_callbacks)
 		: j_callbacks_(jni, j_callbacks),
 		  j_sink_frame_id_(GetMethodID(
-		 				  jni, GetObjectClass(jni, j_callbacks), "onData",
-		 				  "([BIIII)V")) {
+				  jni, GetObjectClass(jni, j_callbacks), "onData",
+				  "([BIIII)V")) {
 		CHECK_EXCEPTION(jni);
 
 	}
@@ -908,14 +914,14 @@ class JavaVideoRendererWrapper
 		  j_render_frame_id_(GetMethodID(
 				  jni, GetObjectClass(jni, j_callbacks), "renderFrame",
 				  "(Lorg/webrtc/VideoRenderer$I420Frame;)V")),
-	      j_frame_class_(jni,
+				  j_frame_class_(jni,
 						  FindClass(jni, "org/webrtc/VideoRenderer$I420Frame")),
-		  j_i420_frame_ctor_id_(GetMethodID(
+						  j_i420_frame_ctor_id_(GetMethodID(
 								  jni, *j_frame_class_, "<init>", "(III[I[Ljava/nio/ByteBuffer;JJ)V")),
-		  j_texture_frame_ctor_id_(GetMethodID(
+								  j_texture_frame_ctor_id_(GetMethodID(
 										  jni, *j_frame_class_, "<init>",
 										  "(IIII[FJ)V")),
-		  j_byte_buffer_class_(jni, FindClass(jni, "java/nio/ByteBuffer")) {
+										  j_byte_buffer_class_(jni, FindClass(jni, "java/nio/ByteBuffer")) {
 		CHECK_EXCEPTION(jni);
 	}
 
@@ -1094,7 +1100,7 @@ JOW(void, Logging_nativeEnableTracing)(
 		webrtc::Trace::set_level_filter(nativeLevels);
 		if (path != "logcat:") {
 			RTC_CHECK_EQ(0, webrtc::Trace::SetTraceFile(path.c_str(), false))
-        		  << "SetTraceFile failed";
+        				  << "SetTraceFile failed";
 		} else {
 			// Intentionally leak this to avoid needing to reason about its lifecycle.
 			// It keeps no state and functions only as a dispatch point.
@@ -1197,17 +1203,17 @@ JOW(jlong, PeerConnectionFactory_nativeCreateObserver)(
 
 JOW(void, PeerConnectionFactory_initializeAndroidGlobals)
 (JNIEnv* jni,
- jclass,
- jobject context,
- jboolean video_hw_acceleration) {
-  video_hw_acceleration_enabled = (video_hw_acceleration == JNI_TRUE);
- // AndroidNetworkMonitor::SetAndroidContext(jni, context);
-  if (!factory_static_initialized) {
-    RTC_DCHECK(j_application_context == nullptr);
-    j_application_context = NewGlobalRef(jni, context);
-    //webrtc::JVM::Initialize(GetJVM(), context);
-    factory_static_initialized = true;
-  }
+		jclass,
+		jobject context,
+		jboolean video_hw_acceleration) {
+	video_hw_acceleration_enabled = (video_hw_acceleration == JNI_TRUE);
+	// AndroidNetworkMonitor::SetAndroidContext(jni, context);
+	if (!factory_static_initialized) {
+		RTC_DCHECK(j_application_context == nullptr);
+		j_application_context = NewGlobalRef(jni, context);
+		//webrtc::JVM::Initialize(GetJVM(), context);
+		factory_static_initialized = true;
+	}
 }
 
 JOW(void, PeerConnectionFactory_initializeFieldTrials)(
@@ -1263,16 +1269,17 @@ JOW(void, PeerConnectionFactory_shutdownInternalTracer)(JNIEnv* jni, jclass) {
 // or entirely manual (requires caller to delete threads after factory
 // teardown).  This struct takes ownership of its ctor's arguments to present a
 // single thing for Java to hold and eventually free.
-class OwnedFactoryAndThreads {
+class OwnedFactoryAndThreads : public IAdaptBitrate{
 public:
 	OwnedFactoryAndThreads(std::unique_ptr<Thread> network_thread,
 			std::unique_ptr<Thread> worker_thread,
 			std::unique_ptr<Thread> signaling_thread,
-			WebRtcVideoEncoderFactory* encoder_factory,
+			antmedia::VideoEncoderFactory* encoder_factory,
 			WebRtcVideoDecoderFactory* decoder_factory,
 			rtc::NetworkMonitorFactory* network_monitor_factory,
 			PeerConnectionFactoryInterface* factory,
-			rtc::scoped_refptr<webrtc::AudioDeviceModule> cadm)
+			rtc::scoped_refptr<webrtc::AudioDeviceModule> cadm,
+			rtc::scoped_refptr<antmedia::AudioEncoderFactory> audio_encoder_factory)
 : network_thread_(std::move(network_thread)),
   worker_thread_(std::move(worker_thread)),
   signaling_thread_(std::move(signaling_thread)),
@@ -1280,10 +1287,11 @@ public:
   decoder_factory_(decoder_factory),
   network_monitor_factory_(network_monitor_factory),
   factory_(factory),
-  cadm_(cadm){}
+  cadm_(cadm),
+  audio_encoder_factory_(audio_encoder_factory){}
 
 	~OwnedFactoryAndThreads() {
-	//	CHECK_RELEASE(cadm_);
+		//	CHECK_RELEASE(cadm_);
 		CHECK_RELEASE(factory_);
 		if (network_monitor_factory_ != nullptr) {
 			rtc::NetworkMonitorFactory::ReleaseFactory(network_monitor_factory_);
@@ -1293,8 +1301,10 @@ public:
 	PeerConnectionFactoryInterface* factory() { return factory_; }
 	Thread* signaling_thread() { return signaling_thread_.get(); }
 	Thread* worker_thread() { return worker_thread_.get(); }
-	WebRtcVideoEncoderFactory* encoder_factory() { return encoder_factory_; }
+	antmedia::VideoEncoderFactory* encoder_factory() { return encoder_factory_; }
 	WebRtcVideoDecoderFactory* decoder_factory() { return decoder_factory_; }
+	antmedia::AudioEncoderFactory* audio_encoder_factory() {  return audio_encoder_factory_.get(); }
+
 	rtc::NetworkMonitorFactory* network_monitor_factory() {
 		return network_monitor_factory_;
 	}
@@ -1307,18 +1317,33 @@ public:
 	}
 	CustomVideoCapturer* video_capturer() { return videoCapturer_; }
 
+	void adaptBitrate(int bitrate) override {
+		std::cerr  << "--- adaptBitrate --- target bps " << bitrate <<std::endl;
+		this->targetBitrate = bitrate;
+	}
+
+	long getTargetedBitrate() {
+		return this->targetBitrate;
+	}
+
+
+
 private:
 	void JavaCallbackOnFactoryThreads();
 
 	const std::unique_ptr<Thread> network_thread_;
 	const std::unique_ptr<Thread> worker_thread_;
 	const std::unique_ptr<Thread> signaling_thread_;
-	WebRtcVideoEncoderFactory* encoder_factory_;
+	antmedia::VideoEncoderFactory* encoder_factory_;
 	WebRtcVideoDecoderFactory* decoder_factory_;
 	rtc::NetworkMonitorFactory* network_monitor_factory_;
 	PeerConnectionFactoryInterface* factory_;  // Const after ctor except dtor.
 	rtc::scoped_refptr<webrtc::AudioDeviceModule> cadm_;
+	rtc::scoped_refptr<antmedia::AudioEncoderFactory> audio_encoder_factory_;
 	CustomVideoCapturer* videoCapturer_;
+
+
+	int targetBitrate;
 };
 
 void OwnedFactoryAndThreads::JavaCallbackOnFactoryThreads() {
@@ -1383,6 +1408,15 @@ PeerConnectionFactoryInterface::Options ParseOptionsFromJava(JNIEnv* jni,
 	return native_options;
 }
 
+JOW(jlong, PeerConnectionFactory_nativeGetTargetedBitrate)
+	(JNIEnv* jni, jobject thisObject, jlong j_p) {
+
+	OwnedFactoryAndThreads *factory =
+				reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
+
+
+	return factory->getTargetedBitrate();
+}
 
 JOW(jlong, PeerConnectionFactory_nativeCreatePeerConnectionFactory)(
 		JNIEnv* jni, jclass, jobject joptions) {
@@ -1408,9 +1442,12 @@ JOW(jlong, PeerConnectionFactory_nativeCreatePeerConnectionFactory)(
 	signaling_thread->SetName("signaling_thread", NULL);
 	RTC_CHECK(signaling_thread->Start()) << "Failed to start thread";
 
-	WebRtcVideoEncoderFactory* encoder_factory = nullptr;
+	antmedia::VideoEncoderFactory* encoder_factory = nullptr;
 	WebRtcVideoDecoderFactory* decoder_factory = nullptr;
 	rtc::NetworkMonitorFactory* network_monitor_factory = nullptr;
+
+	rtc::scoped_refptr<antmedia::AudioEncoderFactory>
+	audio_encoder_factory(new rtc::RefCountedObject<antmedia::AudioEncoderFactory>());
 
 	PeerConnectionFactoryInterface::Options options;
 	bool has_options = joptions != NULL;
@@ -1419,7 +1456,7 @@ JOW(jlong, PeerConnectionFactory_nativeCreatePeerConnectionFactory)(
 	}
 
 	if (video_hw_acceleration_enabled) {
-		//    encoder_factory = new WebRtcVideoEncoderFactory();
+		encoder_factory = new antmedia::VideoEncoderFactory(); //new WebRtcVideoEncoderFactory();
 		//    decoder_factory = new MediaCodecVideoDecoderFactory();
 	}
 	// Do not create network_monitor_factory only if the options are
@@ -1439,7 +1476,8 @@ JOW(jlong, PeerConnectionFactory_nativeCreatePeerConnectionFactory)(
 	rtc::scoped_refptr<PeerConnectionFactoryInterface> factory(
 			webrtc::CreatePeerConnectionFactory(
 					network_thread.get(), worker_thread.get(), signaling_thread.get(),
-					(AudioDeviceModule*)adm.get(), encoder_factory, decoder_factory));
+					(AudioDeviceModule*)adm.get(), audio_encoder_factory, webrtc::CreateBuiltinAudioDecoderFactory(), encoder_factory, decoder_factory));
+
 
 
 	RTC_CHECK(factory) << "Failed to create the peer connection factory; "
@@ -1452,7 +1490,11 @@ JOW(jlong, PeerConnectionFactory_nativeCreatePeerConnectionFactory)(
 	OwnedFactoryAndThreads* owned_factory = new OwnedFactoryAndThreads(
 			std::move(network_thread), std::move(worker_thread),
 			std::move(signaling_thread), encoder_factory, decoder_factory,
-			network_monitor_factory, factory.release(), adm.release());
+			network_monitor_factory, factory.release(), adm.release(), audio_encoder_factory.release());
+
+	if (encoder_factory != nullptr) {
+		encoder_factory->setBitrateAdaptor(owned_factory);
+	}
 	owned_factory->InvokeJavaCallbacksOnFactoryThreads();
 	return jlongFromPointer(owned_factory);
 }
@@ -1492,25 +1534,25 @@ JOW(jlong, PeerConnectionFactory_nativeCreateLocalMediaStream)(
 
 JOW(jlong, PeerConnectionFactory_nativeCreateVideoSource)
 (JNIEnv* jni, jclass, jlong native_factory) {
-  OwnedFactoryAndThreads* factory =
-      reinterpret_cast<OwnedFactoryAndThreads*>(native_factory);
+	OwnedFactoryAndThreads* factory =
+			reinterpret_cast<OwnedFactoryAndThreads*>(native_factory);
 
-  rtc::scoped_refptr<PeerConnectionFactoryInterface> nativeFactory(
-  			factoryFromJava(native_factory));
+	rtc::scoped_refptr<PeerConnectionFactoryInterface> nativeFactory(
+			factoryFromJava(native_factory));
 
-//new rtc::RefCountedObject<CustomAudioDeviceModule>(id, audio_layer);
-  CustomVideoCapturer* videoCapturer = new CustomVideoCapturer();
-  std::unique_ptr<cricket::VideoCapturer> localCapturer(videoCapturer);
-  //localCapturer.reset(new CustomVideoCapturer());
+	//new rtc::RefCountedObject<CustomAudioDeviceModule>(id, audio_layer);
+	CustomVideoCapturer* videoCapturer = new CustomVideoCapturer();
+	std::unique_ptr<cricket::VideoCapturer> localCapturer(videoCapturer);
+	//localCapturer.reset(new CustomVideoCapturer());
 
-  factory->setVideoCapturer(videoCapturer);
-  rtc::scoped_refptr<VideoTrackSourceInterface> source = nativeFactory->CreateVideoSource(std::move(localCapturer));
+	factory->setVideoCapturer(videoCapturer);
+	rtc::scoped_refptr<VideoTrackSourceInterface> source = nativeFactory->CreateVideoSource(std::move(localCapturer));
 
-  rtc::scoped_refptr<webrtc::VideoTrackSourceProxy> proxy_source =
-      webrtc::VideoTrackSourceProxy::Create(factory->signaling_thread(),
-                                            factory->worker_thread(), source);
+	rtc::scoped_refptr<webrtc::VideoTrackSourceProxy> proxy_source =
+			webrtc::VideoTrackSourceProxy::Create(factory->signaling_thread(),
+					factory->worker_thread(), source);
 
-  return (jlong)proxy_source.release();
+	return (jlong)proxy_source.release();
 }
 
 
@@ -2096,13 +2138,13 @@ JOW(jboolean, PeerConnection_nativeAddIceCandidate)(
 		jint j_sdp_mline_index, jstring j_candidate_sdp) {
 	std::string sdp_mid = JavaToStdString(jni, j_sdp_mid);
 	std::string sdp = JavaToStdString(jni, j_candidate_sdp);
-	 webrtc::SdpParseError error;
+	webrtc::SdpParseError error;
 	std::unique_ptr<IceCandidateInterface> candidate(
 			webrtc::CreateIceCandidate(sdp_mid, j_sdp_mline_index, sdp, &error));
 	if (!candidate.get()) {
-	      LOG(WARNING) << "Can't parse received candidate message. "
-	          << "SdpParseError was: " << error.description;
-	      return false;
+		LOG(WARNING) << "Can't parse received candidate message. "
+				<< "SdpParseError was: " << error.description;
+		return false;
 	}
 	return ExtractNativePC(jni, j_pc)->AddIceCandidate(candidate.get());
 }
@@ -2269,6 +2311,75 @@ JOW(void, PeerConnection_close)(JNIEnv* jni, jobject j_pc) {
 	return;
 }
 
+JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length) {
+	OwnedFactoryAndThreads *factory =
+			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
+
+	antmedia::AudioEncoderFactory* audio_encoder_factory = factory->audio_encoder_factory();
+	MockOpusEncoder* mockOpusEncoder = audio_encoder_factory->getAudioEncoder();
+
+	if (!mockOpusEncoder) {
+		LOG(WARNING) << " Audio Encoder Factory has not created audio encoder";
+		return;
+	}
+
+	jbyte* data = jni->GetByteArrayElements(j_packet, JNI_FALSE);
+
+	mockOpusEncoder->addEncodedData((uint8_t*)data, j_packet_length);
+
+	jni->ReleaseByteArrayElements(j_packet, data, JNI_ABORT);
+}
+
+JOW(int, PeerConnectionFactory_nativeAddVideoPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length, jint width, jint height, jboolean isKeyFrame) {
+
+	OwnedFactoryAndThreads *factory =
+			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
+
+	antmedia::VideoEncoderFactory* encoder_factory = factory->encoder_factory();
+	antmedia::MockH264Encoder* encoder = encoder_factory->getVideoEncoder();
+
+	if (!encoder) {
+		return -1;
+	}
+
+	jbyte* data = jni->GetByteArrayElements(j_packet, JNI_FALSE);
+	//return encoder->writePacket((uint8_t*)data, j_packet_length, width, height, isKeyFrame);
+	int result = encoder->addEncodedPacketData(nullptr, 0, (uint8_t*)data, j_packet_length, width, height, isKeyFrame);
+
+	jni->ReleaseByteArrayElements(j_packet, data, JNI_ABORT);
+
+	return result;
+}
+
+JOW(int, PeerConnectionFactory_nativeAddVideoConfPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_conf_data,
+		jint j_conf_data_length, jbyteArray j_packet_data, jint j_packet_length,
+		jint width, jint height, jboolean isKeyFrame) {
+
+	OwnedFactoryAndThreads *factory =
+			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
+
+	antmedia::VideoEncoderFactory* encoder_factory = factory->encoder_factory();
+	antmedia::MockH264Encoder* encoder = encoder_factory->getVideoEncoder();
+
+	if (!encoder) {
+		LOG(WARNING) << "--- encoder is not set yet ---";
+		return -1;
+	}
+
+	jbyte* confData = jni->GetByteArrayElements(j_conf_data, JNI_FALSE);
+
+	jbyte* data = jni->GetByteArrayElements(j_packet_data, JNI_FALSE);
+
+
+	int result = encoder->addEncodedPacketData((uint8_t*)confData, j_conf_data_length, (uint8_t*)data, j_packet_length, width, height, isKeyFrame);
+
+	jni->ReleaseByteArrayElements(j_conf_data, confData, JNI_ABORT);
+	jni->ReleaseByteArrayElements(j_packet_data, data, JNI_ABORT);
+
+	return result;
+
+}
+
 JOW(jobject, MediaSource_nativeState)(JNIEnv* jni, jclass, jlong j_p) {
 	rtc::scoped_refptr<MediaSourceInterface> p(
 			reinterpret_cast<MediaSourceInterface*>(j_p));
@@ -2290,12 +2401,12 @@ JOW(jlong, AudioSink_nativeWrapAudioSink)(
 }
 
 JOW(void, AudioSource_nativeWriteAudioFrame)(JNIEnv* jni,
-		 jclass, jlong j_p, jbyteArray j_frame,
-		 jint sample_count)
-{
+		jclass, jlong j_p, jbyteArray j_frame,
+		jint sample_count)
+		{
 
 	OwnedFactoryAndThreads *factory =
-				reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
+			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
 
 	if (!j_frame) {
 		LOG(WARNING) << "audio j_frame is null";
@@ -2305,23 +2416,33 @@ JOW(void, AudioSource_nativeWriteAudioFrame)(JNIEnv* jni,
 	//factory->worker_thread()->Invoke<void>(posted_from, functor)
 	CustomAudioDeviceModule* cadm = (CustomAudioDeviceModule*)factory->audio_device_module();
 	factory->worker_thread()->Invoke<void>(RTC_FROM_HERE,
-					[&] {
-			cadm->WriteAudioFrame(data, sample_count);
+			[&] {
+		cadm->WriteAudioFrame(data, sample_count);
 	});
 
 
 	jni->ReleaseByteArrayElements(j_frame, data, JNI_ABORT);
 
+		}
+
+JOW(void, VideoSource_nativeWriteMockVideoFrame)
+(JNIEnv* jni, jclass, jlong j_p,  jint width, jint height) {
+
+	OwnedFactoryAndThreads *factory =
+			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
+	factory->video_capturer()->writeMockFrame(width, height);
 }
+
+
 
 JOW(void, VideoSource_nativeWriteVideoFrame)
 (JNIEnv* jni, jclass, jlong j_p, jbyteArray j_frame, jint width, jint height) {
 
 	if (!j_frame) {
-			LOG(WARNING) << "j_frame is null";
+		LOG(WARNING) << "j_frame is null";
 	}
 	OwnedFactoryAndThreads *factory =
-					reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
+			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
 	jbyte* data = jni->GetByteArrayElements(j_frame, JNI_FALSE);
 	factory->video_capturer()->writeFrame(data, width, height);
 	jni->ReleaseByteArrayElements(j_frame, data, JNI_ABORT);
@@ -2478,19 +2599,19 @@ JOW(void, VideoTrack_nativeAddRenderer)(
 		jlong j_video_track_pointer, jlong j_renderer_pointer) {
 	LOG(LS_INFO) << "VideoTrack::nativeAddRenderer";
 	reinterpret_cast<VideoTrackInterface*>(j_video_track_pointer)
-    		  ->AddOrUpdateSink(
-    				  reinterpret_cast<rtc::VideoSinkInterface<webrtc::VideoFrame>*>(
-    						  j_renderer_pointer),
-							  rtc::VideoSinkWants());
+    				  ->AddOrUpdateSink(
+    						  reinterpret_cast<rtc::VideoSinkInterface<webrtc::VideoFrame>*>(
+    								  j_renderer_pointer),
+									  rtc::VideoSinkWants());
 }
 
 JOW(void, VideoTrack_nativeRemoveRenderer)(
 		JNIEnv* jni, jclass,
 		jlong j_video_track_pointer, jlong j_renderer_pointer) {
 	reinterpret_cast<VideoTrackInterface*>(j_video_track_pointer)
-    		  ->RemoveSink(
-    				  reinterpret_cast<rtc::VideoSinkInterface<webrtc::VideoFrame>*>(
-    						  j_renderer_pointer));
+    				  ->RemoveSink(
+    						  reinterpret_cast<rtc::VideoSinkInterface<webrtc::VideoFrame>*>(
+    								  j_renderer_pointer));
 }
 
 JOW(void, AudioTrack_nativeAddSink)(
@@ -2498,18 +2619,18 @@ JOW(void, AudioTrack_nativeAddSink)(
 		jlong j_audio_track_pointer, jlong j_renderer_pointer) {
 	LOG(LS_INFO) << "AudioTrack::nativeAddSink";
 	reinterpret_cast<AudioTrackInterface*>(j_audio_track_pointer)
-    		  ->AddSink(
-    				  reinterpret_cast<webrtc::AudioTrackSinkInterface*>(
-    						  j_renderer_pointer));
+    				  ->AddSink(
+    						  reinterpret_cast<webrtc::AudioTrackSinkInterface*>(
+    								  j_renderer_pointer));
 }
 
 JOW(void, AudioTrack_nativeRemoveSink)(
 		JNIEnv* jni, jclass,
 		jlong j_audio_track_pointer, jlong j_renderer_pointer) {
 	reinterpret_cast<AudioTrackInterface*>(j_audio_track_pointer)
-    		  ->RemoveSink(
-    				  reinterpret_cast<webrtc::AudioTrackSinkInterface*>(
-    						  j_renderer_pointer));
+    				  ->RemoveSink(
+    						  reinterpret_cast<webrtc::AudioTrackSinkInterface*>(
+    								  j_renderer_pointer));
 }
 
 
@@ -2849,14 +2970,14 @@ JOW(jlong, RtpReceiver_nativeSetObserver)
 	RtpReceiverObserver* rtpReceiverObserver =
 			new RtpReceiverObserver(jni, j_observer);
 	reinterpret_cast<RtpReceiverInterface*>(j_rtp_receiver_pointer)
-    		  ->SetObserver(rtpReceiverObserver);
+    				  ->SetObserver(rtpReceiverObserver);
 	return jlongFromPointer(rtpReceiverObserver);
 }
 
 JOW(void, RtpReceiver_nativeUnsetObserver)
 (JNIEnv* jni, jclass, jlong j_rtp_receiver_pointer, jlong j_observer_pointer) {
 	reinterpret_cast<RtpReceiverInterface*>(j_rtp_receiver_pointer)
-    		  ->SetObserver(nullptr);
+    				  ->SetObserver(nullptr);
 	RtpReceiverObserver* observer =
 			reinterpret_cast<RtpReceiverObserver*>(j_observer_pointer);
 	if (observer) {

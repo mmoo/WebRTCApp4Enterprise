@@ -13,6 +13,24 @@ using namespace antmedia;
 
 CustomVideoCapturer::CustomVideoCapturer():vframe(nullptr,webrtc::VideoRotation::kVideoRotation_0, 0)
 {
+	std::vector<cricket::VideoFormat> supported;
+	cricket::VideoFormat format;
+	 format.width = 1280;
+	 format.height = 720;
+	 format.fourcc = cricket::FOURCC_I420;
+	 format.interval = 15;
+	supported.push_back(format);
+
+
+	cricket::VideoFormat format2;
+		 format2.width = 640;
+		 format2.height = 480;
+		 format2.fourcc = cricket::FOURCC_I420;
+		 format2.interval = 10;
+
+		 supported.push_back(format2);
+
+	SetSupportedFormats(supported);
 }
 
 CustomVideoCapturer::~CustomVideoCapturer()
@@ -21,13 +39,13 @@ CustomVideoCapturer::~CustomVideoCapturer()
 
 cricket::CaptureState CustomVideoCapturer::Start(const cricket::VideoFormat& capture_format)
 {
-	std::cout << "Start";
+
 	if (capture_state() == cricket::CS_RUNNING) {
 		std::cout << "Start called when it's already started.";
 		return capture_state();
 	}
 
-
+    LOG(WARNING) << "capture format: " << capture_format.width <<" height: " << capture_format.height;
 	m_startThread = rtc::Thread::Current();
 
 	//pthread_create(&g_pthread, NULL, grabCapture, (void*)this);
@@ -62,7 +80,7 @@ void* CustomVideoCapturer::grabCapture(void* arg) {
 
 	return 0;
 }
-*/
+ */
 
 void CustomVideoCapturer::stop() {
 	if (m_startThread->IsCurrent()) {
@@ -79,6 +97,38 @@ void CustomVideoCapturer::stop() {
 	}
 }
 
+/*
+void CustomVideoCapturer::writePacket(int8_t* data, int width, int height) {
+	if (m_startThread->IsCurrent()) {
+			VideoCapturer::OnFrame(webrtcFrame, webrtcFrame.width(), webrtcFrame.height());
+		} else {
+			this->vframe = webrtcFrame;
+			//vc->OnFrame(frame, frame.width(), frame.height());
+			m_startThread->Invoke<void>(RTC_FROM_HERE, [this] {
+				OnFrame(vframe, vframe.width(), vframe.height());
+			});
+		}
+}
+
+ */
+
+
+void CustomVideoCapturer::writeMockFrame(int width, int height) {
+
+	webrtc::I420Buffer* buffer = mockBuffer.get();
+	if (buffer == nullptr || buffer->width() != width || buffer->height() != height) {
+		mockBuffer =
+				webrtc::I420Buffer::Create(width, height, width, (width+1) /2, (width+1) /2 );
+
+		webrtc::VideoFrame webrtcFrame(mockBuffer, 0, 0, webrtc::kVideoRotation_0);
+		vframe = webrtcFrame;
+	}
+
+	m_startThread->Invoke<void>(RTC_FROM_HERE, [this] {
+		OnFrame(vframe, vframe.width(), vframe.height());
+	});
+
+}
 
 void CustomVideoCapturer::writeFrame(int8_t* data, int width, int height) {
 
@@ -87,20 +137,19 @@ void CustomVideoCapturer::writeFrame(int8_t* data, int width, int height) {
 	}
 
 	rtc::scoped_refptr<webrtc::I420Buffer> buffer =
-				webrtc::I420Buffer::Create(width, height, width, (width+1) /2, (width+1) /2 );
+			webrtc::I420Buffer::Create(width, height, width, (width+1) /2, (width+1) /2 );
 
 	size_t length = webrtc::CalcBufferSize(webrtc::kI420, width, height);
 
 	if(0 != webrtc::ConvertToI420(webrtc::kI420, (unsigned char*)data, 0, 0, width, height, length, webrtc::kVideoRotation_0, buffer.get()) ){
-			LOG(WARNING) << "Failed to convert frame to i420" << std::endl;
-		}
+		LOG(WARNING) << "Failed to convert frame to i420" << std::endl;
+	}
 
 	webrtc::VideoFrame webrtcFrame(buffer, 0, 0, webrtc::kVideoRotation_0);
 	vframe = webrtcFrame;
 	//vc->OnFrame(frame, frame.width(), frame.height());
 
 	//VideoCapturer::OnFrame(vframe, vframe.width(), vframe.height());
-
 
 	if (m_startThread->IsCurrent()) {
 		VideoCapturer::OnFrame(webrtcFrame, webrtcFrame.width(), webrtcFrame.height());
@@ -130,8 +179,15 @@ bool CustomVideoCapturer::GetPreferredFourccs(std::vector<uint32_t>* fourccs)
 
 bool CustomVideoCapturer::GetBestCaptureFormat(const cricket::VideoFormat& desired, cricket::VideoFormat* best_format)
 {
+
+	LOG(WARNING) << __FUNCTION__ << " desired format width :" << desired.width << " height: " << desired.height;
+
+
 	if (!best_format)
 		return false;
+
+
+	LOG(WARNING) << "best format null ";
 
 	// Use the desired format as the best format.
 	best_format->width = desired.width;
