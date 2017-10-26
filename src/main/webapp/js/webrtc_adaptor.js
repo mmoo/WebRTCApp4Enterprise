@@ -223,7 +223,12 @@ function WebRTCAdaptor(initialValues)
 				}
 			}
 			if (videoTrackSender == null) {
-				navigator.mediaDevices.getUserMedia({video:thiz.mediaConstraints.video})
+				var value = true;
+				if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != "false")
+				{
+					value = thiz.mediaConstraints.video;
+				}
+				navigator.mediaDevices.getUserMedia({video:value})
 				.then(function(stream) {
 					thiz.localStream.addTrack(stream.getVideoTracks()[0]);
 					thiz.localVideo.srcObject = thiz.localStream;
