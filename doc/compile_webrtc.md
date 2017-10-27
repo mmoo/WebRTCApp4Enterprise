@@ -1,0 +1,51 @@
+
+# Compile WebRTC
+
+Current checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
+
+### Steps
+
+* Add rtc_use_h264=true to args file
+
+    `gn args out/Default`
+
+    The content of the screen should like this
+
+    ```
+    # Build arguments go here.
+    # See "gn args <out_dir> --list" for available build arguments.
+    rtc_use_h264=true
+    ```
+
+* Change ffmpeg settings
+
+  *  Go to "third_party/ffmpeg/chromium/scripts/"
+  *  Edit the file build_ffmpeg.py and add mp4 as muxer and h264 as decoder,
+      * Find line first line below
+        '--enable-parser=opus,vorbis,flac',
+      * Add the below lines after the line above  
+        '--enable-muxer=mp4',
+        '--enable-decoder=h264',
+
+  * Edit the file  ./chromium/scripts/generate_gn.py and comment out the below line with dash #
+    ```
+    #    'libavformat/sdp.o',
+    ```    
+  * Build ffmpeg with for linux, mac, win and arch is x64 for each platform
+  ```
+  ./chromium/scripts/build_ffmpeg.py linux x64
+  ./chromium/scripts/copy_config.sh
+  ./chromium/scripts/generate_gn.py```
+
+
+  ##### This is a documentation file for FFmpeg in chromium
+
+  * Edit webrtc/media/engine/webrtcvideoengine2.cc and comment out the line below
+  in GetSupportedCodecs function
+  ```
+  //  AppendVideoCodecs(internal_codecs, &unified_codecs);
+    ```
+
+  * Compile the project with
+
+  `ninja -C out/Default`
