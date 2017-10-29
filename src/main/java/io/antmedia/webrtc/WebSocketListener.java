@@ -254,9 +254,16 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 			}
 			else if (cmd.equals("stop")) {
 
-				ConnectionContext connectionContext = connectionContextList.get(connection.getId());
-				if (connectionContext != null) {
-					connectionContext.stop();
+				WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
+				if (webRTCClient != null) {
+					webRTCAdaptor.deregisterWebRTCClient(webRTCClient.getStreamId(), webRTCClient);
+					webRTCClient.stop();
+				}
+				else {
+					ConnectionContext connectionContext = connectionContextList.get(connection.getId());
+					if (connectionContext != null) {
+						connectionContext.stop();
+					}
 				}
 			}
 			else if (cmd.equals("leave")) {
@@ -294,19 +301,20 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 				if (webSocketConnection.equals(connection)) 
 				{
 					iterator.remove();
+					webSocketConnection.close();
 				}
 			}
-			
+
 			if (webSocketConnections.size() == 0) {
 				signallingConnections.remove(streamName);
 			}
-			
+
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put("command", "notification");
 			jsonResponse.put("definition", "leaved");
 			connection.send(jsonResponse.toJSONString());
-			
-			
+
+
 		}
 		else {
 			JSONObject jsonResponse = new JSONObject();
@@ -493,7 +501,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 
 		System.out.println("webrtc adaptor in websocket listener ---> " + webRTCAdaptor);
 	}
-	
+
 	public Map<String, List<WebSocketConnection>> getSignallingConnections() {
 		return signallingConnections;
 	}
