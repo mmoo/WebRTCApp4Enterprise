@@ -39,6 +39,7 @@ Current checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
 
 
   ##### This is a documentation file for FFmpeg in chromium
+  https://docs.google.com/document/d/14bqZ9NISsyEO3948wehhJ7wc9deTIz-yHUhF1MQp7Po/edit
 
   * Edit webrtc/media/engine/webrtcvideoengine2.cc and comment out the line below
   in GetSupportedCodecs function
