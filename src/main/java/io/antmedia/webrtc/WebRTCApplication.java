@@ -47,7 +47,7 @@ public class WebRTCApplication extends AntMediaApplicationAdapter implements App
 		// add this application to it
 		wsPlugin.setApplication(this);
 		// get the manager
-		WebSocketScopeManager manager = wsPlugin.getManager(scope);
+		WebSocketScopeManager manager = wsPlugin.getManager(app);
 		// get the ws scope
 		WebSocketScope defaultWebSocketScope = (WebSocketScope) applicationContext.getBean("webSocketScopeDefault");
 		// add the ws scope
@@ -110,11 +110,5 @@ public class WebRTCApplication extends AntMediaApplicationAdapter implements App
 		
 		return null;
 	}
-	
-	
-	
-	
-	
-	
 
 }

@@ -16,20 +16,9 @@ function WebRTCAdaptor(initialValues)
 	thiz.streamName = null;
 	thiz.videoTrackSender = null;
 	thiz.audioTrackSender = null;
-	/*
-	  {
-		  websocket_url:"ws://" + location.hostname + ":8081/WebRTCApp4",
-		  mediaConstraints: mediaConstraints,
-		  localVideoId: localVideo,
-		  remoteVideoId: remoteVideo,
-		  callback: function() {
-			  console.log("success callback");
-		  },
-		  callbackError: function(error) {
-			  console.log("error callback" + error);
-		  }
-	  }
-	 */
+	
+	thiz.isPlayMode = false;
+	
 	for(var key in initialValues) {
 		if(initialValues.hasOwnProperty(key)) {
 			this[key] = initialValues[key];
@@ -45,6 +34,93 @@ function WebRTCAdaptor(initialValues)
 		return;
 	}
 
+	if (!this.isPlayMode)  // if it is in play mode, do not get user media
+	{
+		if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != "false") 
+		{
+			//var media_video_constraint = { video: thiz.mediaConstraints.video };
+			navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
+			.then(function(stream){
+
+				//this trick, getting audio and video separately, make us add or remove tracks on the fly
+				var audioTrack = stream.getAudioTracks();
+				if (audioTrack.length > 0) {
+					stream.removeTrack(audioTrack[0]);
+				}
+
+				//now get only audio to add this stream
+				if (typeof thiz.mediaConstraints.audio != "undefined" && thiz.mediaConstraints.audio != "false") {
+					var media_audio_constraint = { audio: thiz.mediaConstraints.audio};
+					navigator.mediaDevices.getUserMedia(media_audio_constraint)
+					.then(function(audioStream) {
+						stream.addTrack(audioStream.getAudioTracks()[0]);
+						thiz.gotStream(stream);
+					})
+					.catch(function(error) {
+						thiz.callbackError(error.name);		
+					});
+				}
+			})
+			.catch(function(error) {
+				thiz.callbackError(error.name);		
+			});
+		}
+		else {
+			var media_audio_constraint = { video: thiz.mediaConstraints.audio };
+			navigator.mediaDevices.getUserMedia(media_audio_constraint)
+			.then(thiz.gotStream)
+			.catch(function(error) {
+				thiz.callbackError(error.name);		
+			});
+		}
+	}
+	else {
+		if (thiz.webSocketAdaptor == null || thiz.webSocketAdaptor.isConnected() == false) {
+			thiz.webSocketAdaptor = new WebSocketAdaptor();
+		}
+	}
+
+
+	this.publish = function (streamName) {
+		thiz.streamName = streamName;
+
+		var jsCmd;
+		{
+			jsCmd = {
+					command : "publish",
+					streamName : streamName,
+			};
+		}
+
+		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
+	}
+
+	this.play = function (streamName) {
+		thiz.streamName = streamName;
+		var jsCmd;
+		{
+
+			jsCmd = {
+				command : "play",
+				streamName : thiz.streamName,
+			};
+		}
+
+		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
+	}
+
+	this.stop = function(streamName) {
+		var jsCmd;
+		{
+			jsCmd = {
+					command : "stop",
+			};
+		}
+
+		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
+
+		thiz.closePeerConnection();
+	}
 
 	this.join = function(streamName) {
 		thiz.streamName = streamName;
@@ -81,50 +157,10 @@ function WebRTCAdaptor(initialValues)
 		thiz.localStream = stream;
 		thiz.localVideo.srcObject = stream;
 		if (thiz.webSocketAdaptor == null || thiz.webSocketAdaptor.isConnected() == false) {
-			thiz.webSocketAdaptor = new thiz.WebSocketAdaptor();
+			thiz.webSocketAdaptor = new WebSocketAdaptor();
 		}
 
 	};
-
-	if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != "false") 
-	{
-		//var media_video_constraint = { video: thiz.mediaConstraints.video };
-		navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
-		.then(function(stream){
-
-			//this trick, getting audio and video separately, make us add or remove tracks on the fly
-			var audioTrack = stream.getAudioTracks();
-			if (audioTrack.length > 0) {
-				stream.removeTrack(audioTrack[0]);
-			}
-			
-			//now get only audio to add this stream
-			if (typeof thiz.mediaConstraints.audio != "undefined" && thiz.mediaConstraints.audio != "false") {
-				var media_audio_constraint = { audio: thiz.mediaConstraints.audio};
-				navigator.mediaDevices.getUserMedia(media_audio_constraint)
-				.then(function(audioStream) {
-					stream.addTrack(audioStream.getAudioTracks()[0]);
-					thiz.gotStream(stream);
-				})
-				.catch(function(error) {
-					thiz.callbackError(error.name);		
-				});
-			}
-		})
-		.catch(function(error) {
-			thiz.callbackError(error.name);		
-		});
-	}
-	else {
-		var media_audio_constraint = { video: thiz.mediaConstraints.audio };
-		navigator.mediaDevices.getUserMedia(media_audio_constraint)
-		.then(thiz.gotStream)
-		.catch(function(error) {
-			thiz.callbackError(error.name);		
-		});
-	}
-
-
 
 	this.onTrack = function(event) {
 		console.log("onTrack");
@@ -150,7 +186,9 @@ function WebRTCAdaptor(initialValues)
 	this.initPeerConnection = function() {
 		if (thiz.remotePeerConnection == null) {
 			thiz.remotePeerConnection = new RTCPeerConnection(thiz.peerconnection_config);
-			thiz.remotePeerConnection.addStream(thiz.localStream);
+			if (!thiz.isPlayMode) {
+				thiz.remotePeerConnection.addStream(thiz.localStream);
+			}
 			thiz.remotePeerConnection.onicecandidate = thiz.iceCandidateReceived;
 			thiz.remotePeerConnection.ontrack = thiz.onTrack;
 		}
@@ -162,6 +200,13 @@ function WebRTCAdaptor(initialValues)
 			thiz.remotePeerConnection.close();
 			thiz.remotePeerConnection = null;
 		}
+	}
+
+	this.signallingState = function() {
+		if (thiz.remotePeerConnection != null) {
+			return thiz.remotePeerConnection.signalingState;
+		}
+		return null;
 	}
 
 	this.gotDescription = function(configuration) {
@@ -330,8 +375,8 @@ function WebRTCAdaptor(initialValues)
 		}
 	}
 
-	
-	this.WebSocketAdaptor = function() {
+	//this.WebSocketAdaptor = function() {
+    function WebSocketAdaptor() {
 		var wsConn = new WebSocket(thiz.websocket_url);
 
 		var connected = false;
@@ -352,7 +397,7 @@ function WebRTCAdaptor(initialValues)
 
 		wsConn.onmessage = function(event) {
 			obj = JSON.parse(event.data);
-			//console.log(obj);
+
 			if (obj.command == "start") {
 				thiz.initPeerConnection();
 
@@ -363,7 +408,6 @@ function WebRTCAdaptor(initialValues)
 				.catch(function () {
 					console.log("create offer error");
 				});
-
 			}
 			else if (obj.command == "takeCandidate") {
 
@@ -415,9 +459,5 @@ function WebRTCAdaptor(initialValues)
 			console.log("connection closed.");
 		}
 	};
-
-
-
-
 }
 

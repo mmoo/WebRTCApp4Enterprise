@@ -19,25 +19,19 @@ import org.red5.net.websocket.WebSocketConnection;
 import org.red5.net.websocket.listener.WebSocketDataListener;
 import org.red5.net.websocket.model.MessageType;
 import org.red5.net.websocket.model.WSMessage;
-import org.red5.server.api.scheduling.IScheduledJob;
-import org.red5.server.api.scheduling.ISchedulingService;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.webrtc.AudioSource;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
-import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnection.IceServer;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
-import org.webrtc.VideoSource;
 
-import io.antmedia.enterprise.webrtc.WebRTCClient;
-import io.antmedia.enterprise.webrtc.api.IWebRTCAdaptor;
+import io.antmedia.webrtc.api.IWebRTCAdaptor;
 import io.antmedia.webrtc.receiver.FFmpegFrameRecorder;
 import io.antmedia.webrtc.receiver.FrameRecorder;
 import io.antmedia.webrtc.receiver.ReceiverConnectionContext;
@@ -65,7 +59,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 
 	private IWebRTCAdaptor webRTCAdaptor;
 
-	private String baseUrl = "rtmp://127.0.0.1/WebRTCApp/";
+	private String baseUrl = "rtmp://127.0.0.1/WebRTCApp4/";
 
 	private ApplicationContext applicationContext;
 
@@ -139,7 +133,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					connection.send(jsonResponse.toJSONString());
 					return;
 				}
-				String outputURL = "rtmp://127.0.0.1/WebRTCApp/" + streamName;
+				String outputURL = baseUrl + streamName;
 
 				ConnectionContext connectionContext = new ReceiverConnectionContext(getNewRecorder(outputURL));
 
@@ -213,20 +207,31 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					type = Type.ANSWER;
 				}
 
-				String streamName = (String) jsonObject.get("streamName");
-				if (streamName != null && !streamName.equals("")) 
-				{
-					processSignallingTakeConf(streamName, connection, typeString, sdpDescription);
+				ConnectionContext connectionContext = connectionContextList.get(connection.getId());
+
+				if (connectionContext != null) {
+					// webrtc publish
+					SessionDescription sdp = new SessionDescription(type, sdpDescription);
+					connectionContext.peerConnection.setRemoteDescription(connectionContext, sdp);
 				}
 				else {
-					SessionDescription sdp = new SessionDescription(type, sdpDescription);
-
 					WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
-					if (webRTCClient != null) {
+					if (webRTCClient != null) 
+					{
+						//webrtc play
+						SessionDescription sdp = new SessionDescription(type, sdpDescription);
 						webRTCClient.setRemoteDescription(sdp);
 					}
+					else 
+					{
+						//webrtc p2p
+						String streamName = (String) jsonObject.get("streamName");
+						if (streamName != null && !streamName.equals("")) 
+						{
+							processSignallingTakeConf(streamName, connection, typeString, sdpDescription);
+						}
+					}
 				}
-
 			}
 			else if (cmd.equals("takeCandidate")) {
 
@@ -234,23 +239,30 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 				String sdp = (String) jsonObject.get("candidate");
 				long sdpMLineIndex = (long)jsonObject.get("label");
 
-				String streamName = (String) jsonObject.get("streamName");
-				if (streamName != null && !streamName.equals(""))  {
-					//if it is in signalling mode, 
-					processSignallingTakeCandidate(streamName, connection, sdpMLineIndex,  sdpMid, sdp);
+				ConnectionContext connectionContext = connectionContextList.get(connection.getId());
 
-				}
-				else {
-					// if server is in peer mode
+				if (connectionContext != null) {
+					// WebRTC publish
 					IceCandidate iceCandidate = new IceCandidate(sdpMid, (int)sdpMLineIndex, sdp);
-
-					WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
-					if (webRTCClient != null) {
-						webRTCClient.addIceCandidate(iceCandidate);
+					if (!connectionContext.peerConnection.addIceCandidate(iceCandidate)) {
+						log.error("ICE candidate could not be added.");
 					}
 				}
-
-
+				else {
+					WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
+					if (webRTCClient != null) {
+						// WebRTC play
+						IceCandidate iceCandidate = new IceCandidate(sdpMid, (int)sdpMLineIndex, sdp);
+						webRTCClient.addIceCandidate(iceCandidate);
+					}
+					else {
+						String streamName = (String) jsonObject.get("streamName");
+						if (streamName != null && !streamName.equals(""))  {
+							//WebRTC p2p
+							processSignallingTakeCandidate(streamName, connection, sdpMLineIndex,  sdpMid, sdp);
+						}
+					}
+				}
 			}
 			else if (cmd.equals("stop")) {
 
@@ -295,13 +307,14 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 			JSONObject jsonResponseObject = new JSONObject();
 			jsonResponseObject.put("command", "stop");
 
-			for (Iterator iterator = webSocketConnections.iterator(); iterator.hasNext();) {
+			for (Iterator iterator = webSocketConnections.iterator(); iterator.hasNext();) 
+			{
 				WebSocketConnection webSocketConnection = (WebSocketConnection) iterator.next();
 				webSocketConnection.send(jsonResponseObject.toJSONString());
 				if (webSocketConnection.equals(connection)) 
 				{
-					iterator.remove();
-					webSocketConnection.close();
+					//remove the current connection from room
+					iterator.remove();	
 				}
 			}
 
@@ -309,6 +322,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 				signallingConnections.remove(streamName);
 			}
 
+			//notify current connection that it has been leaved
 			JSONObject jsonResponse = new JSONObject();
 			jsonResponse.put("command", "notification");
 			jsonResponse.put("definition", "leaved");
@@ -466,24 +480,28 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 		String streamName = (String) conn.getSession().getAttribute(ATTR_STREAM_NAME);
 		if (streamName != null) {
 			List<WebSocketConnection> list = signallingConnections.get(streamName);
-			for (Iterator iterator = list.iterator(); iterator.hasNext();) 
-			{
-				WebSocketConnection webSocketConnection = (WebSocketConnection) iterator.next();
-				if (webSocketConnection.equals(conn)) {
-					iterator.remove();
-				}
-				else {
-					JSONObject jsonResponseObject = new JSONObject();
-					jsonResponseObject.put("command", "stop");
-					try {
-						webSocketConnection.send(jsonResponseObject.toJSONString());
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
+
+			if (list != null) {
+				for (Iterator iterator = list.iterator(); iterator.hasNext();) 
+				{
+					WebSocketConnection webSocketConnection = (WebSocketConnection) iterator.next();
+					if (webSocketConnection.equals(conn)) {
+						iterator.remove();
+					}
+					else {
+						JSONObject jsonResponseObject = new JSONObject();
+						jsonResponseObject.put("command", "stop");
+						try {
+							webSocketConnection.send(jsonResponseObject.toJSONString());
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
 					}
 				}
-			}
-			if (list.size() == 0) {
-				signallingConnections.remove(streamName);
+
+				if (list.size() == 0) {
+					signallingConnections.remove(streamName);
+				}
 			}
 
 		}

@@ -9,9 +9,7 @@
 	crossorigin="anonymous">
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="js/webrtc_adaptor.js" ></script>
-<script>
-	
-</script>
+
 </head>
 <body>
 
@@ -25,7 +23,7 @@
 						class="icon-bar"></span> <span class="icon-bar"></span> <span
 						class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#">WebRTC Peer to Peer Connection</a>
+				<a class="navbar-brand" href="#">WebRTC Peer to Peer</a>
 			</div>
 			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav pull-right">
@@ -69,22 +67,6 @@
 	var join_button = document.getElementById("join_button");
 	var leave_button = document.getElementById("leave_button");
 
-	var pc_config = null;
-	/*{
-		'iceServers' : [ {
-			'urls' : 'stun:stun.l.google.com:19302'
-		} ]
-	};
-	*/
-
-	var sdpConstraints = 
-	{
-		OfferToReceiveAudio : true,
-		OfferToReceiveVideo : true
-			
-	};
-	
-	
 
 	var streamNameBox = document.getElementById("streamName");
 
@@ -112,23 +94,22 @@
 		webRTCAdaptor.unmuteLocalMic();
 	}
 	
-	function closeRemoteCamera() {
-		webRTCAdaptor.closeRemoteCamera();
-	}
-	
-	function openRemoteCamera() {
-		webRTCAdaptor.openRemoteCamera();
-	}
-	
-	function muteRemoteMic(){
-		webRTCAdaptor.muteRemoteMic();
-	}
-	
-	function unmuteRemoteMic() {
-		webRTCAdaptor.unmuteRemoteMic();
-	}
 	
 	  
+	var pc_config = null;
+	/*{
+		'iceServers' : [ {
+			'urls' : 'stun:stun.l.google.com:19302'
+		} ]
+	};
+	*/
+
+	var sdpConstraints = 
+	{
+		OfferToReceiveAudio : true,
+		OfferToReceiveVideo : true
+			
+	};
 	var mediaConstraints = {
 	          video: true,
 	          audio: true

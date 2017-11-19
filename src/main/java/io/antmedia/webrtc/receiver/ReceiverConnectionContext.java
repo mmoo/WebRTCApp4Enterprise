@@ -5,10 +5,12 @@ import static org.bytedeco.javacpp.avutil.AV_PIX_FMT_YUV420P;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 
+import org.json.simple.JSONObject;
 import org.webrtc.AudioSink;
 import org.webrtc.AudioTrack;
 import org.webrtc.MediaConstraints;
@@ -18,6 +20,7 @@ import org.webrtc.VideoRenderer;
 import org.webrtc.VideoRenderer.Callbacks;
 import org.webrtc.VideoRenderer.I420Frame;
 import org.webrtc.VideoTrack;
+import org.webrtc.SessionDescription.Type;
 
 import io.antmedia.webrtc.ConnectionContext;
 
@@ -125,6 +128,17 @@ public class ReceiverConnectionContext extends ConnectionContext {
 		} catch (FrameRecorder.Exception e) {
 			e.printStackTrace();
 		}
+		
+		
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("command", "notification");
+		jsonObject.put("definition", "publish_finished");
+
+		try {
+			wsConnection.send(jsonObject.toJSONString());
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 	}
 
 
@@ -147,6 +161,18 @@ public class ReceiverConnectionContext extends ConnectionContext {
 				videoTrack.addRenderer(new VideoRenderer(new VideoRendererCallback()));
 			}
 		}
+		
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("command", "notification");
+		jsonObject.put("definition", "publish_started");
+
+		try {
+			wsConnection.send(jsonObject.toJSONString());
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		
 	}
 	
 	

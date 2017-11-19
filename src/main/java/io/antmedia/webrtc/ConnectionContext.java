@@ -23,7 +23,7 @@ import org.webrtc.SessionDescription.Type;
 
 public abstract class ConnectionContext implements Observer, SdpObserver {
 	protected PeerConnection peerConnection;
-	private WebSocketConnection wsConnection;
+	protected WebSocketConnection wsConnection;
 	private MediaConstraints sdpMediaConstraints;
 	protected PeerConnectionFactory peerConnectionFactory;
 	
@@ -93,7 +93,6 @@ public abstract class ConnectionContext implements Observer, SdpObserver {
 	public void onIceCandidatesRemoved(IceCandidate[] candidates) {
 	}
 	
-	public void onAddStream(MediaStream stream) {}
 	
 	@Override
 	public void onRemoveStream(MediaStream stream) {

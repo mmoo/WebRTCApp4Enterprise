@@ -48,6 +48,7 @@
 
 		<property name="videoServiceEndpoints">
 			<list>
+			<!-- 
 				<bean id="facebook.endpoint"
 					class="io.antmedia.enterprise.social.endpoint.FacebookEndpoint"
 					init-method="start">
@@ -55,13 +56,14 @@
 					<constructor-arg value="${facebook.clientSecret}" />
 					<constructor-arg ref="preference.store" />
 				</bean>
+			 -->
 				<bean id="periscope.endpoint" class="io.antmedia.social.endpoint.PeriscopeEndpoint"
 					init-method="start">
 					<constructor-arg value="${periscope.clientId}" />
 					<constructor-arg value="${periscope.clientSecret}" />
 					<constructor-arg ref="preference.store" />
 				</bean>
-
+<!-- 
 				<bean id="youtube.endpoint"
 					class="io.antmedia.enterprise.social.endpoint.YoutubeEndpoint"
 					init-method="start">
@@ -69,13 +71,14 @@
 					<constructor-arg value="${youtube.clientSecret}" />
 					<constructor-arg ref="preference.store" />
 				</bean>
+	 -->
 			</list>
 		</property>
 
 		<property name="dataStore" ref="db.datastore" />
 	</bean>
 	
-	<bean id="webrtc.adaptor" class="io.antmedia.enterprise.webrtc.WebRTCAdaptor">     
+	<bean id="webrtc.adaptor" class="io.antmedia.webrtc.WebRTCAdaptor">     
     </bean>
 
 	<!-- WebSocket scope with our listeners -->
