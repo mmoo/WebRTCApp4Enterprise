@@ -122,6 +122,7 @@
       <property name="hlsTime" value="${settings.hlsTime}" />
       <property name="hlsPlayListType" value="${settings.hlsPlayListType}" />
       <property name="webRTCEnabled" value="${settings.webRTCEnabled}" />
+      <property name="deleteHLSFilesOnEnded" value="${settings.deleteHLSFilesOnEnded}" />
 		
 	</bean>
 

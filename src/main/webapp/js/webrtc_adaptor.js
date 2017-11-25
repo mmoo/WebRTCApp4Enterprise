@@ -85,12 +85,12 @@ function WebRTCAdaptor(initialValues)
 		thiz.streamName = streamName;
 
 		var jsCmd;
-		{
-			jsCmd = {
+		
+		jsCmd = {
 					command : "publish",
 					streamName : streamName,
-			};
-		}
+		};
+		
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}

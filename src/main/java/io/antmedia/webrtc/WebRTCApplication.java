@@ -11,7 +11,6 @@ import org.red5.net.websocket.WebSocketPlugin;
 import org.red5.net.websocket.WebSocketScope;
 import org.red5.net.websocket.WebSocketScopeManager;
 import org.red5.net.websocket.listener.IWebSocketDataListener;
-import org.red5.server.adapter.AntMediaApplicationAdapter;
 import org.red5.server.adapter.MultiThreadedApplicationAdapter;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IBroadcastStream;
@@ -22,6 +21,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import io.antmedia.AntMediaApplicationAdapter;
 import io.antmedia.social.endpoint.VideoServiceEndpoint;
 
 public class WebRTCApplication extends AntMediaApplicationAdapter implements ApplicationContextAware{
@@ -107,7 +107,6 @@ public class WebRTCApplication extends AntMediaApplicationAdapter implements App
 				}
 			}
 		}
-		
 		return null;
 	}
 

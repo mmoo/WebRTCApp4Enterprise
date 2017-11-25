@@ -177,13 +177,13 @@ body {
 				start_publish_button.disabled = false;
 				stop_publish_button.disabled = true;
 			} else if (info == "publish_started") {
-				//joined the stream
+				//stream is being published
 				console.log("publish started");
 				start_publish_button.disabled = true;
 				stop_publish_button.disabled = false;
 				startAnimation();
 			} else if (info == "publish_finished") {
-				//leaved the stream
+				//stream is being finished
 				console.log("publish finished");
 				start_publish_button.disabled = false;
 				stop_publish_button.disabled = true;

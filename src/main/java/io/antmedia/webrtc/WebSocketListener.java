@@ -31,6 +31,10 @@ import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
 
+import io.antmedia.AntMediaApplicationAdapter;
+import io.antmedia.AppSettings;
+import io.antmedia.enterprise.adaptive.WebRTCEncoderAdaptor;
+import io.antmedia.storage.StorageClient;
 import io.antmedia.webrtc.api.IWebRTCAdaptor;
 import io.antmedia.webrtc.receiver.FFmpegFrameRecorder;
 import io.antmedia.webrtc.receiver.FrameRecorder;
@@ -52,6 +56,8 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 	private JSONParser parser = new JSONParser();
 
 	private Map<Long, ConnectionContext> connectionContextList = new HashMap<>();
+	
+	private Map<Long, WebRTCEncoderAdaptor> publisherAdaptorList = new HashMap<>();
 
 	private Map<Long, WebRTCClient> webRTCClientsMap = new HashMap();
 
@@ -64,6 +70,14 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 	private ApplicationContext applicationContext;
 
 	private Map<String, List<WebSocketConnection>> signallingConnections = new HashMap<String, List<WebSocketConnection>>();
+
+
+
+	private AppSettings appSettings;
+
+
+
+	private AntMediaApplicationAdapter appAdaptor;
 
 
 
@@ -107,6 +121,9 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 		return result;
 	}
 
+
+
+
 	public void takeAction(JSONObject jsonObject, WebSocketConnection connection) {
 		try {
 			String cmd = (String) jsonObject.get("command");
@@ -133,7 +150,27 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					connection.send(jsonResponse.toJSONString());
 					return;
 				}
+				if (appSettings == null || appSettings.getAdaptiveResolutionList() == null ) {
+					JSONObject jsonResponse = new JSONObject();
+					jsonResponse.put("command", "error");
+					jsonResponse.put("definition", "No encoder settings available");
+					connection.send(jsonResponse.toJSONString());
+					return;
+				}
 				String outputURL = baseUrl + streamName;
+
+
+				WebRTCEncoderAdaptor encoderAdaptor = getNewWebRTCEncoderAdaptor();
+
+				publisherAdaptorList.put(connection.getId(), encoderAdaptor);
+				
+				encoderAdaptor.setWsConnection(connection);
+				
+				encoderAdaptor.init(appAdaptor.getScope(), streamName, false);
+				
+				encoderAdaptor.start();
+				
+				/*
 
 				ConnectionContext connectionContext = new ReceiverConnectionContext(getNewRecorder(outputURL));
 
@@ -157,6 +194,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 				jsonResponse.put("command", "start");
 
 				connection.send(jsonResponse.toJSONString());
+				*/
 
 			}
 			else if (cmd.equals("play")) {
@@ -206,14 +244,21 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 				else {
 					type = Type.ANSWER;
 				}
-
+				
+				WebRTCEncoderAdaptor webRTCEncoderAdaptor = publisherAdaptorList.get(connection.getId());
+				if (webRTCEncoderAdaptor != null) {
+					// webrtc publish
+					SessionDescription sdp = new SessionDescription(type, sdpDescription);
+					webRTCEncoderAdaptor.setRemoteDescription(sdp);
+				}
+				/*
 				ConnectionContext connectionContext = connectionContextList.get(connection.getId());
 
 				if (connectionContext != null) {
 					// webrtc publish
 					SessionDescription sdp = new SessionDescription(type, sdpDescription);
 					connectionContext.peerConnection.setRemoteDescription(connectionContext, sdp);
-				}
+				}*/
 				else {
 					WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
 					if (webRTCClient != null) 
@@ -239,6 +284,13 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 				String sdp = (String) jsonObject.get("candidate");
 				long sdpMLineIndex = (long)jsonObject.get("label");
 
+				WebRTCEncoderAdaptor webRTCEncoderAdaptor = publisherAdaptorList.get(connection.getId());
+				if (webRTCEncoderAdaptor != null) {
+					// webrtc publish
+					IceCandidate iceCandidate = new IceCandidate(sdpMid, (int)sdpMLineIndex, sdp);
+					webRTCEncoderAdaptor.addIceCandidate(iceCandidate);
+				}
+				/*
 				ConnectionContext connectionContext = connectionContextList.get(connection.getId());
 
 				if (connectionContext != null) {
@@ -247,7 +299,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					if (!connectionContext.peerConnection.addIceCandidate(iceCandidate)) {
 						log.error("ICE candidate could not be added.");
 					}
-				}
+				}*/
 				else {
 					WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
 					if (webRTCClient != null) {
@@ -272,10 +324,18 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					webRTCClient.stop();
 				}
 				else {
+					
+					WebRTCEncoderAdaptor webRTCEncoderAdaptor = publisherAdaptorList.get(connection.getId());
+					if (webRTCEncoderAdaptor != null) {
+						// webrtc publish
+						webRTCEncoderAdaptor.stop();
+					}
+					
+					/*
 					ConnectionContext connectionContext = connectionContextList.get(connection.getId());
 					if (connectionContext != null) {
 						connectionContext.stop();
-					}
+					}*/
 				}
 			}
 			else if (cmd.equals("leave")) {
@@ -299,6 +359,27 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 		}
 	}
 
+
+	private WebRTCEncoderAdaptor getNewWebRTCEncoderAdaptor() {
+		WebRTCEncoderAdaptor encoderAdaptor = new WebRTCEncoderAdaptor(null, appSettings.getAdaptiveResolutionList());
+		StorageClient storageClient = null; 
+		if (applicationContext.containsBean("app.storageClient")) {
+			storageClient = (StorageClient) applicationContext.getBean("app.storageClient");
+		}
+
+		encoderAdaptor.setStorageClient(storageClient);
+
+		encoderAdaptor.setMp4MuxingEnabled(appSettings.isMp4MuxingEnabled(), appSettings.isAddDateTimeToMp4FileName());
+		encoderAdaptor.setHLSMuxingEnabled(appSettings.isHlsMuxingEnabled());
+		encoderAdaptor.setWebRTCEnabled(appSettings.isWebRTCEnabled());
+		encoderAdaptor.setHLSFilesDeleteOnExit(appSettings.isDeleteHLSFilesOnExit());
+
+		encoderAdaptor.setHlsTime(appSettings.getHlsTime());
+		encoderAdaptor.setHlsListSize(appSettings.getHlsListSize());
+		encoderAdaptor.setHlsPlayListType(appSettings.getHlsPlayListType());
+
+		return encoderAdaptor;
+	}
 
 	public void processSignallingLeave(String streamName, WebSocketConnection connection) throws UnsupportedEncodingException {
 		List<WebSocketConnection> webSocketConnections = signallingConnections.get(streamName);
@@ -517,7 +598,13 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 		this.applicationContext = applicationContext;
 		webRTCAdaptor = (IWebRTCAdaptor) applicationContext.getBean(IWebRTCAdaptor.BEAN_NAME);
 
-		System.out.println("webrtc adaptor in websocket listener ---> " + webRTCAdaptor);
+		if (applicationContext.containsBean(AppSettings.BEAN_NAME)) {
+			appSettings = (AppSettings)applicationContext.getBean(AppSettings.BEAN_NAME);
+		}
+		
+		log.debug("webrtc adaptor in websocket listener ---> " + webRTCAdaptor);
+		
+		appAdaptor = (AntMediaApplicationAdapter)applicationContext.getBean("web.handler");
 	}
 
 	public Map<String, List<WebSocketConnection>> getSignallingConnections() {

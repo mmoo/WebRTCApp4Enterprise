@@ -22,11 +22,13 @@ import org.webrtc.VideoRenderer.I420Frame;
 import org.webrtc.VideoTrack;
 import org.webrtc.SessionDescription.Type;
 
+import io.antmedia.enterprise.adaptive.WebRTCEncoderAdaptor;
 import io.antmedia.webrtc.ConnectionContext;
 
 public class ReceiverConnectionContext extends ConnectionContext {
 
 	FFmpegFrameRecorder recorder;
+	//WebRTCEncoderAdaptor encoderAdaptor;
 	protected long startTime;
 	
 	
@@ -147,8 +149,8 @@ public class ReceiverConnectionContext extends ConnectionContext {
 	public void onAddStream(MediaStream stream) {
 		log.warn("onAddStream");
 
-		if (stream.audioTracks != null) {
-			AudioTrack audioTrack = stream.audioTracks.getFirst();
+		if (stream.getAudioTracks() != null) {
+			AudioTrack audioTrack = stream.getAudioTracks().getFirst();
 			if (audioTrack != null) {
 				audioTrack.addSink(new AudioSinkCallback());
 			}

@@ -158,13 +158,13 @@ body {
 				stop_play_button.disabled = true;
 			} else if (info == "play_started") {
 				//joined the stream
-				console.log("publish started");
+				console.log("play started");
 				start_play_button.disabled = true;
 				stop_play_button.disabled = false;
 			
 			} else if (info == "play_finished") {
 				//leaved the stream
-				console.log("publish finished");
+				console.log("play finished");
 				start_play_button.disabled = false;
 				stop_play_button.disabled = true;
 			}
