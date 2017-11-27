@@ -110,16 +110,15 @@ function WebRTCAdaptor(initialValues)
 	}
 
 	this.stop = function(streamName) {
-		var jsCmd;
-		{
-			jsCmd = {
+		thiz.closePeerConnection();
+		
+		var jsCmd = {
 					command : "stop",
 			};
-		}
-
+		
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 
-		thiz.closePeerConnection();
+		
 	}
 
 	this.join = function(streamName) {

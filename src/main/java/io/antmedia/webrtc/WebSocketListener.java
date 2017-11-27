@@ -492,7 +492,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 	public void onWSMessage(WSMessage message) {
 
 		String msg = new String(message.getPayload().array()).trim();
-		log.info("onWSMessage: {}\n", msg);
+		log.debug("onWSMessage: {}\n", msg);
 
 		// ignore ping and pong
 		if (message.getMessageType() == MessageType.PING || message.getMessageType() == MessageType.PONG) {
