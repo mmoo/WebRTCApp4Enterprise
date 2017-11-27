@@ -100,21 +100,18 @@
 		<property name="addDateTimeToMp4FileName" value="${settings.addDateTimeToMp4FileName}" />
 		<property name="adaptiveResolutionList">
          <list>
-         <!-- 
-            <value>720</value>
-            <value>480</value>
-            <value>360</value>
-            -->
             <bean class="io.antmedia.EncoderSettings">
               	<constructor-arg  value="480" type="int" /> <!--  height -->
             	<constructor-arg  value="600000" type="int" /> <!--  video bitrate -->
               	<constructor-arg  value="128000" type="int" /> <!--  audio bitrate -->
              </bean>
+             <!--
              <bean class="io.antmedia.EncoderSettings">
-              	<constructor-arg  value="240" type="int" /> <!--  height -->
-            	<constructor-arg  value="300000" type="int" /> <!--  video bitrate -->
-              	<constructor-arg  value="32000" type="int" /> <!--  audio bitrate -->
+              	<constructor-arg  value="240" type="int" />   
+            	<constructor-arg  value="300000" type="int" /> 
+              	<constructor-arg  value="32000" type="int" />
              </bean>
+             -->
          </list>
       </property>
       <property name="hlsMuxingEnabled" value="${settings.hlsMuxingEnabled}" />
