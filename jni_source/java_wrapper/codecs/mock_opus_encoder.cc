@@ -608,6 +608,10 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 
 	encodedPacketQueue.pop();
 
+	//packet timestamp is in milliseconds
+	//std::cerr << " audio timestamp " << packet->timestamp;
+	uint32_t packetTimeStamp = (SampleRateHz()/1000) * packet->timestamp;
+
 	delete packet;
 
 /*
@@ -637,7 +641,7 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	//	  std::cerr << "opus encoded data " << std::dec << i << "  " << std::hex << (int)encoded->data()[i] << std::endl;
 	//	}
 
-	info.encoded_timestamp = first_timestamp_in_buffer_;
+	info.encoded_timestamp = packetTimeStamp; // first_timestamp_in_buffer_;
 	info.payload_type = config_.payload_type;
 	info.send_even_if_empty = true;  // Allows Opus to send empty packets.
 	info.speech = (info.encoded_bytes > 0);

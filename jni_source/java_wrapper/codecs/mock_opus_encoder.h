@@ -139,12 +139,12 @@ class MockOpusEncoder final : public AudioEncoder {
     return config_.supported_frame_lengths_ms;
   }
 
-  void addEncodedData(uint8_t* packet_data, int packet_data_size) {
+  void addEncodedData(uint8_t* packet_data, int packet_data_size, long timestamp) {
 
 	  uint8_t* p_packet_data = new uint8_t[packet_data_size];
 	  memcpy(p_packet_data, packet_data, packet_data_size);
 
-	  EncodedPacket* packet = new EncodedPacket(nullptr, 0, p_packet_data, packet_data_size, 0, 0, false);
+	  EncodedPacket* packet = new EncodedPacket(nullptr, 0, p_packet_data, packet_data_size, 0, 0, false, timestamp);
 
 	  encodedPacketQueue.push(packet);
 

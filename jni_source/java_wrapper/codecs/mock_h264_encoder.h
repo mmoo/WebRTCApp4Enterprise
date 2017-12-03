@@ -29,7 +29,7 @@ class EncodedPacket {
 
 public:
 	EncodedPacket(uint8_t* p_extradata, int p_extradata_size, uint8_t* p_packet_data, int p_packet_data_size,
-			int p_width, int p_height, bool p_isKeyFrame) {
+			int p_width, int p_height, bool p_isKeyFrame, long timestamp) {
 		this->extradata = p_extradata;
 		this->extradata_size = p_extradata_size;
 		this->packet_data = p_packet_data;
@@ -37,6 +37,7 @@ public:
 		this->width = p_width;
 		this->height = p_height;
 		this->isKeyFrame = p_isKeyFrame;
+		this->timestamp = timestamp;
 	}
 
 	~EncodedPacket() {
@@ -56,6 +57,7 @@ public:
 	int width;
 	int height;
 	bool isKeyFrame;
+	long timestamp;
 
 };
 
@@ -85,10 +87,10 @@ public:
 		return new MockH264Encoder(codec);
 	}
 
-	  void setBitrateAdaptor(IAdaptBitrate* bitrateAdaptor) {
-		  this->bitrateAdaptor = bitrateAdaptor;
+	void setBitrateAdaptor(IAdaptBitrate* bitrateAdaptor) {
+		this->bitrateAdaptor = bitrateAdaptor;
 
-	  }
+	}
 
 
 	int32_t InitEncode(const webrtc::VideoCodec* codec_settings,
@@ -128,7 +130,7 @@ public:
 		return WEBRTC_VIDEO_CODEC_OK;
 	}
 
-	int32_t addEncodedPacketData(uint8_t* extradata, int extradata_size, uint8_t* packet_data, int packet_data_size, int width, int height, bool isKeyFrame) {
+	int32_t addEncodedPacketData(uint8_t* extradata, int extradata_size, uint8_t* packet_data, int packet_data_size, int width, int height, bool isKeyFrame, long timestamp) {
 
 		uint8_t* p_extradata = nullptr;
 		if (extradata_size > 0) {
@@ -139,7 +141,7 @@ public:
 		uint8_t* p_packet_data = new uint8_t[packet_data_size];
 		memcpy(p_packet_data, packet_data, packet_data_size);
 
-		EncodedPacket* packet = new EncodedPacket(p_extradata, extradata_size, p_packet_data, packet_data_size, width, height, isKeyFrame);
+		EncodedPacket* packet = new EncodedPacket(p_extradata, extradata_size, p_packet_data, packet_data_size, width, height, isKeyFrame, timestamp);
 
 		encodedPacketQueue.push(packet);
 
@@ -151,7 +153,8 @@ public:
 	/**
 	 *extradata can be in
 	 */
-	int32_t writeConfPacket(uint8_t* extradata, int extradata_size, uint8_t* packet_data, int packet_size, int width, int height, bool isKeyFrame) {
+	int32_t writeConfPacket(uint8_t* extradata, int extradata_size, uint8_t* packet_data, int packet_size, int width,
+					int height, bool isKeyFrame, long timestamp) {
 
 		uint16_t configFragCount = 0;
 		uint16_t sps_size, pps_size;
@@ -272,13 +275,19 @@ public:
 		encoded_image_._encodedWidth = width;
 		encoded_image_._encodedHeight = height;
 		//encoded_image_._timeStamp = 0; //input_frame.timestamp();
-		encoded_image_.ntp_time_ms_ = clock_->TimeInMilliseconds() + delta_ntp_internal_ms_; //input_frame.ntp_time_ms();
-		encoded_image_._timeStamp = kMsToRtpTimestamp * static_cast<uint32_t>(encoded_image_.ntp_time_ms_);
-		encoded_image_.capture_time_ms_ = 0; //input_frame.render_time_ms();
+
+
+		//timestamp is in milliseconds
+		//std::cerr << " video timestamp " << timestamp;
+		encoded_image_.ntp_time_ms_ = timestamp; // clock_->TimeInMilliseconds() + delta_ntp_internal_ms_; //input_frame.ntp_time_ms();
+		encoded_image_.capture_time_ms_ = encoded_image_.ntp_time_ms_;
+		encoded_image_._timeStamp = kMsToRtpTimestamp * static_cast<uint32_t>(timestamp);
+
+		//encoded_image_.capture_time_ms_ = 0; //input_frame.render_time_ms();
 		encoded_image_.rotation_ = webrtc::kVideoRotation_0;
 		encoded_image_.content_type_ = (mode_ == webrtc::kScreensharing)
-											    																																																										  ? webrtc::VideoContentType::SCREENSHARE
-											    																																																												  : webrtc::VideoContentType::UNSPECIFIED;
+											    																																																												  ? webrtc::VideoContentType::SCREENSHARE
+											    																																																														  : webrtc::VideoContentType::UNSPECIFIED;
 		encoded_image_._frameType =  isKeyFrame
 				? webrtc::kVideoFrameKey
 						: webrtc::kVideoFrameDelta;
@@ -333,9 +342,9 @@ public:
 		return WEBRTC_VIDEO_CODEC_OK;
 	}
 
-	int32_t writePacket(uint8_t* packet_data, int packet_size, int width, int height, bool isKeyFrame) {
+	int32_t writePacket(uint8_t* packet_data, int packet_size, int width, int height, bool isKeyFrame, long timestamp) {
 
-		return writeConfPacket(nullptr, 0, packet_data, packet_size, width, height, isKeyFrame);
+		return writeConfPacket(nullptr, 0, packet_data, packet_size, width, height, isKeyFrame, timestamp);
 	}
 
 
@@ -356,7 +365,7 @@ public:
 		}
 
 		EncodedPacket* packet = encodedPacketQueue.front();
-		writeConfPacket(packet->extradata, packet->extradata_size, packet->packet_data, packet->packet_data_size, packet->width, packet->height, packet->isKeyFrame);
+		writeConfPacket(packet->extradata, packet->extradata_size, packet->packet_data, packet->packet_data_size, packet->width, packet->height, packet->isKeyFrame, packet->timestamp);
 		encodedPacketQueue.pop();
 
 		delete packet;

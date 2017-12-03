@@ -2311,7 +2311,7 @@ JOW(void, PeerConnection_close)(JNIEnv* jni, jobject j_pc) {
 	return;
 }
 
-JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length) {
+JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length, jlong timestamp) {
 	OwnedFactoryAndThreads *factory =
 			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
 
@@ -2325,12 +2325,12 @@ JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong
 
 	jbyte* data = jni->GetByteArrayElements(j_packet, JNI_FALSE);
 
-	mockOpusEncoder->addEncodedData((uint8_t*)data, j_packet_length);
+	mockOpusEncoder->addEncodedData((uint8_t*)data, j_packet_length, timestamp);
 
 	jni->ReleaseByteArrayElements(j_packet, data, JNI_ABORT);
 }
 
-JOW(int, PeerConnectionFactory_nativeAddVideoPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length, jint width, jint height, jboolean isKeyFrame) {
+JOW(int, PeerConnectionFactory_nativeAddVideoPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length, jint width, jint height, jboolean isKeyFrame, jlong timestamp) {
 
 	OwnedFactoryAndThreads *factory =
 			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
@@ -2344,7 +2344,7 @@ JOW(int, PeerConnectionFactory_nativeAddVideoPacket)(JNIEnv* jni, jclass, jlong 
 
 	jbyte* data = jni->GetByteArrayElements(j_packet, JNI_FALSE);
 	//return encoder->writePacket((uint8_t*)data, j_packet_length, width, height, isKeyFrame);
-	int result = encoder->addEncodedPacketData(nullptr, 0, (uint8_t*)data, j_packet_length, width, height, isKeyFrame);
+	int result = encoder->addEncodedPacketData(nullptr, 0, (uint8_t*)data, j_packet_length, width, height, isKeyFrame, timestamp);
 
 	jni->ReleaseByteArrayElements(j_packet, data, JNI_ABORT);
 
@@ -2353,7 +2353,7 @@ JOW(int, PeerConnectionFactory_nativeAddVideoPacket)(JNIEnv* jni, jclass, jlong 
 
 JOW(int, PeerConnectionFactory_nativeAddVideoConfPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_conf_data,
 		jint j_conf_data_length, jbyteArray j_packet_data, jint j_packet_length,
-		jint width, jint height, jboolean isKeyFrame) {
+		jint width, jint height, jboolean isKeyFrame, jlong timestamp) {
 
 	OwnedFactoryAndThreads *factory =
 			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
@@ -2371,7 +2371,7 @@ JOW(int, PeerConnectionFactory_nativeAddVideoConfPacket)(JNIEnv* jni, jclass, jl
 	jbyte* data = jni->GetByteArrayElements(j_packet_data, JNI_FALSE);
 
 
-	int result = encoder->addEncodedPacketData((uint8_t*)confData, j_conf_data_length, (uint8_t*)data, j_packet_length, width, height, isKeyFrame);
+	int result = encoder->addEncodedPacketData((uint8_t*)confData, j_conf_data_length, (uint8_t*)data, j_packet_length, width, height, isKeyFrame, timestamp);
 
 	jni->ReleaseByteArrayElements(j_conf_data, confData, JNI_ABORT);
 	jni->ReleaseByteArrayElements(j_packet_data, data, JNI_ABORT);
