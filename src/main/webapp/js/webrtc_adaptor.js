@@ -97,13 +97,10 @@ function WebRTCAdaptor(initialValues)
 
 	this.play = function (streamName) {
 		thiz.streamName = streamName;
-		var jsCmd;
+		var jsCmd =
 		{
-
-			jsCmd = {
 				command : "play",
 				streamName : thiz.streamName,
-			};
 		}
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
@@ -124,13 +121,11 @@ function WebRTCAdaptor(initialValues)
 	this.join = function(streamName) {
 		thiz.streamName = streamName;
 
-		var jsCmd;
-		{
-			jsCmd = {
+		var jsCmd = {
 					command : "join",
 					streamName : streamName,
 			};
-		}
+		
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}

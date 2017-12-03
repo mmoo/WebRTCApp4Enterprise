@@ -169,32 +169,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 				encoderAdaptor.init(appAdaptor.getScope(), streamName, false);
 				
 				encoderAdaptor.start();
-				
-				/*
-
-				ConnectionContext connectionContext = new ReceiverConnectionContext(getNewRecorder(outputURL));
-
-				connectionContextList.put(connection.getId(), connectionContext);
-
-				List<IceServer> iceServers = new ArrayList();
-				iceServers.add(new IceServer("stun:stun.l.google.com:19302"));
-				PeerConnection.RTCConfiguration rtcConfig = new PeerConnection.RTCConfiguration(iceServers);
-
-				MediaConstraints pcConstraints = new MediaConstraints();
-				pcConstraints.optional.add(
-						new MediaConstraints.KeyValuePair(DTLS_SRTP_KEY_AGREEMENT_CONSTRAINT, "true"));
-
-				PeerConnectionFactory peerConnectionFactory = createPeerConnectionFactory();
-				PeerConnection peerConnection = peerConnectionFactory.createPeerConnection(rtcConfig, pcConstraints, connectionContext);
-				connectionContext.setPeerConnection(peerConnection);
-				connectionContext.setWsConnection(connection);
-				connectionContext.setPeerConnectionFactory(peerConnectionFactory);
-
-				JSONObject jsonResponse = new JSONObject();
-				jsonResponse.put("command", "start");
-
-				connection.send(jsonResponse.toJSONString());
-				*/
 
 			}
 			else if (cmd.equals("play")) {
@@ -251,14 +225,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					SessionDescription sdp = new SessionDescription(type, sdpDescription);
 					webRTCEncoderAdaptor.setRemoteDescription(sdp);
 				}
-				/*
-				ConnectionContext connectionContext = connectionContextList.get(connection.getId());
-
-				if (connectionContext != null) {
-					// webrtc publish
-					SessionDescription sdp = new SessionDescription(type, sdpDescription);
-					connectionContext.peerConnection.setRemoteDescription(connectionContext, sdp);
-				}*/
 				else {
 					WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
 					if (webRTCClient != null) 
@@ -290,16 +256,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					IceCandidate iceCandidate = new IceCandidate(sdpMid, (int)sdpMLineIndex, sdp);
 					webRTCEncoderAdaptor.addIceCandidate(iceCandidate);
 				}
-				/*
-				ConnectionContext connectionContext = connectionContextList.get(connection.getId());
-
-				if (connectionContext != null) {
-					// WebRTC publish
-					IceCandidate iceCandidate = new IceCandidate(sdpMid, (int)sdpMLineIndex, sdp);
-					if (!connectionContext.peerConnection.addIceCandidate(iceCandidate)) {
-						log.error("ICE candidate could not be added.");
-					}
-				}*/
 				else {
 					WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
 					if (webRTCClient != null) {
@@ -330,12 +286,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 						// webrtc publish
 						webRTCEncoderAdaptor.stop();
 					}
-					
-					/*
-					ConnectionContext connectionContext = connectionContextList.get(connection.getId());
-					if (connectionContext != null) {
-						connectionContext.stop();
-					}*/
 				}
 			}
 			else if (cmd.equals("leave")) {
