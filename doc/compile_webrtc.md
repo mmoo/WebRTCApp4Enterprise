@@ -32,6 +32,12 @@ ffmpeg checkout commit is cb7f9fc2adbe20d57520176bb239683b08d3bcc8
     ```
     #    'libavformat/sdp.o',
     ```    
+    and make CheckLicensesForSources function return always true
+    by commenting out the 
+    
+    #return False
+    
+    
   * Build ffmpeg with for linux, mac, win and arch is x64 for each platform
   ```
   ./chromium/scripts/build_ffmpeg.py linux x64
