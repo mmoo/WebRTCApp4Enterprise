@@ -1,7 +1,9 @@
-
 # Compile WebRTC
 
-Current checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
+Current WebRTC checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
+
+`git checkout 62cbb23aeecd48480a7c0aaceb0078453b84ea95`
+`gclient sync`
 
 ### Steps
 
@@ -31,6 +33,12 @@ Current checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
     ```
     #    'libavformat/sdp.o',
     ```    
+    and make CheckLicensesForSources function return always true
+    by commenting out the 
+    
+    #return False
+    
+    
   * Build ffmpeg with for linux, mac, win and arch is x64 for each platform
   ```
   ./chromium/scripts/build_ffmpeg.py linux x64
