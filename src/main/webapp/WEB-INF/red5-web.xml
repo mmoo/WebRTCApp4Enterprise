@@ -29,7 +29,7 @@
 		<property name="virtualHosts" value="${webapp.virtualHosts}" />
 	</bean>
 
-	<bean id="preference.store" class="io.antmedia.webrtc.PreferenceSessionStore">
+	<bean id="preference.store" class="io.antmedia.datastore.preference.PreferenceStore">
 		<constructor-arg value="/WEB-INF/red5-web.properties" />
 	</bean>
 
@@ -39,10 +39,6 @@
 		<constructor-arg value="${webapp.dbName}" />
 	</bean>
 	
-	<!-- 
-	<bean id="webrtc.adaptor" class="io.antmedia.enterprise.webrtc.WebRTCAdaptor"/>
-	 -->
-
 	<!-- Defines the web handler which acts as an applications endpoint -->
 	<bean id="web.handler" class="io.antmedia.enterprise.webrtcapp.WebRTCApplication">
 
