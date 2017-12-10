@@ -33,7 +33,7 @@
 		<constructor-arg value="/WEB-INF/red5-web.properties" />
 	</bean>
 
-	<context:component-scan base-package="io.antmedia.webrtc.rest" />
+	<context:component-scan base-package="io.antmedia.rest" />
 
 	<bean id="db.datastore" class="io.antmedia.datastore.db.InMemoryDataStore">
 		<constructor-arg value="${webapp.dbName}" />
@@ -44,11 +44,11 @@
 	 -->
 
 	<!-- Defines the web handler which acts as an applications endpoint -->
-	<bean id="web.handler" class="io.antmedia.webrtc.WebRTCApplication">
+	<bean id="web.handler" class="io.antmedia.enterprise.webrtcapp.WebRTCApplication">
 
 		<property name="videoServiceEndpoints">
 			<list>
-			<!-- 
+			 
 				<bean id="facebook.endpoint"
 					class="io.antmedia.enterprise.social.endpoint.FacebookEndpoint"
 					init-method="start">
@@ -56,14 +56,14 @@
 					<constructor-arg value="${facebook.clientSecret}" />
 					<constructor-arg ref="preference.store" />
 				</bean>
-			 -->
+			 
 				<bean id="periscope.endpoint" class="io.antmedia.social.endpoint.PeriscopeEndpoint"
 					init-method="start">
 					<constructor-arg value="${periscope.clientId}" />
 					<constructor-arg value="${periscope.clientSecret}" />
 					<constructor-arg ref="preference.store" />
 				</bean>
-<!-- 
+
 				<bean id="youtube.endpoint"
 					class="io.antmedia.enterprise.social.endpoint.YoutubeEndpoint"
 					init-method="start">
@@ -71,7 +71,6 @@
 					<constructor-arg value="${youtube.clientSecret}" />
 					<constructor-arg ref="preference.store" />
 				</bean>
-	 -->
 			</list>
 		</property>
 
@@ -89,7 +88,7 @@
 		<!-- The ws scope listeners -->
 		<property name="listeners">
 			<list>
-				<bean id="listener" class="io.antmedia.webrtc.WebSocketListener">
+				<bean id="listener" class="io.antmedia.enterprise.webrtcapp.WebSocketListener">
 				</bean>
 			</list>
 		</property>
@@ -98,22 +97,9 @@
 	<bean id="app.settings" class="io.antmedia.AppSettings" >
 		<property name="mp4MuxingEnabled" value="${settings.mp4MuxingEnabled}" />
 		<property name="addDateTimeToMp4FileName" value="${settings.addDateTimeToMp4FileName}" />
-		<property name="adaptiveResolutionList">
-         <list>
-            <bean class="io.antmedia.EncoderSettings">
-              	<constructor-arg  value="480" type="int" /> <!--  height -->
-            	<constructor-arg  value="600000" type="int" /> <!--  video bitrate -->
-              	<constructor-arg  value="128000" type="int" /> <!--  audio bitrate -->
-             </bean>
-             <!--
-             <bean class="io.antmedia.EncoderSettings">
-              	<constructor-arg  value="240" type="int" />   
-            	<constructor-arg  value="300000" type="int" /> 
-              	<constructor-arg  value="32000" type="int" />
-             </bean>
-             -->
-         </list>
-      </property>
+
+      
+      <property name="encoderSettingsString" value="${settings.encoderSettingsString}" />
       <property name="hlsMuxingEnabled" value="${settings.hlsMuxingEnabled}" />
       <property name="hlsListSize" value="${settings.hlsListSize}" />
       <property name="hlsTime" value="${settings.hlsTime}" />

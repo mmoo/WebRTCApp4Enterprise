@@ -1,4 +1,4 @@
-package io.antmedia.webrtc;
+package io.antmedia.enterprise.webrtcapp;
 
 import java.util.ArrayList;
 import java.util.HashMap;

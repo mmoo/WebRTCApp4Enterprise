@@ -2,9 +2,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.antmedia.webrtc</groupId>
-	<artifactId>WebRTCApp4</artifactId>
+	<artifactId>WebRTCAppEE</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<name>WebRTCApp4 Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
@@ -36,7 +36,7 @@
 		<javacpp.ffmpeg.version>3.2.1-1.3</javacpp.ffmpeg.version>
 	</properties>
 	<build>
-		<finalName>WebRTCApp4</finalName>
+		<finalName>WebRTCAppEE</finalName>
 		 <testSourceDirectory>src/test/java</testSourceDirectory>
 		<plugins>
 			<plugin>

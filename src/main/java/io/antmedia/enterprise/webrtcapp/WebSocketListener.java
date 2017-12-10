@@ -1,4 +1,4 @@
-package io.antmedia.webrtc;
+package io.antmedia.enterprise.webrtcapp;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -35,10 +35,8 @@ import io.antmedia.AntMediaApplicationAdapter;
 import io.antmedia.AppSettings;
 import io.antmedia.enterprise.adaptive.WebRTCEncoderAdaptor;
 import io.antmedia.storage.StorageClient;
+import io.antmedia.webrtc.WebRTCClient;
 import io.antmedia.webrtc.api.IWebRTCAdaptor;
-import io.antmedia.webrtc.receiver.FFmpegFrameRecorder;
-import io.antmedia.webrtc.receiver.FrameRecorder;
-import io.antmedia.webrtc.receiver.ReceiverConnectionContext;
 
 
 public class WebSocketListener extends WebSocketDataListener implements ApplicationContextAware{
@@ -54,8 +52,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 	private static final Logger log = Red5LoggerFactory.getLogger(WebSocketListener.class);
 
 	private JSONParser parser = new JSONParser();
-
-	private Map<Long, ConnectionContext> connectionContextList = new HashMap<>();
 	
 	private Map<Long, WebRTCEncoderAdaptor> publisherAdaptorList = new HashMap<>();
 
@@ -120,9 +116,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 		}
 		return result;
 	}
-
-
-
 
 	public void takeAction(JSONObject jsonObject, WebSocketConnection connection) {
 		try {
@@ -467,29 +460,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 
 	}
 
-	public static FFmpegFrameRecorder getNewRecorder(String outputURL) {
-
-		FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputURL, 640, 480, 1);
-		recorder.setFormat("flv");
-		recorder.setSampleRate(44100);
-		// Set in the surface changed method
-		recorder.setFrameRate(30);
-		recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
-		recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
-		recorder.setAudioCodec(avcodec.AV_CODEC_ID_AAC);
-		recorder.setAudioChannels(2);
-
-		try {
-			recorder.start();
-		} catch (FrameRecorder.Exception e) {
-			e.printStackTrace();
-		}
-
-		return recorder;
-	}
-
-
-
 	@Override
 	public void onWSConnect(WebSocketConnection conn) {
 		connections.add(conn);
@@ -498,10 +468,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 	@Override
 	public void onWSDisconnect(WebSocketConnection conn) {
 		connections.remove(conn);
-		ConnectionContext context = connectionContextList.get(conn.getId());
-		if (context != null) {
-			context.stop();
-		}
 
 		wsSignallingDisconnected(conn);
 	}
@@ -538,10 +504,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 		}
 	}
 
-	@Override
-	public void stop() {
 
-	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -559,6 +522,11 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 
 	public Map<String, List<WebSocketConnection>> getSignallingConnections() {
 		return signallingConnections;
+	}
+
+	@Override
+	public void stop() {
+		
 	}
 
 }

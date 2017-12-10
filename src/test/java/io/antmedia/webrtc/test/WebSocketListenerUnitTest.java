@@ -11,7 +11,7 @@ import org.apache.mina.core.session.IoSession;
 import org.junit.Test;
 import org.red5.net.websocket.WebSocketConnection;
 
-import io.antmedia.webrtc.WebSocketListener;
+import io.antmedia.enterprise.webrtcapp.WebSocketListener;
 
 
 public class WebSocketListenerUnitTest {

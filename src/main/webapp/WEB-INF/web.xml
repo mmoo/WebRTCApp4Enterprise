@@ -6,13 +6,13 @@
 
 	<!-- The display-name element contains a short name that is intended to 
 		be displayed by tools. The display name need not be unique. -->
-	<display-name>WebRTCApp4</display-name>
+	<display-name>WebRTCAppEE</display-name>
 
 	<!-- The context-param element contains the declaration of a web application's 
 		servlet context initialization parameters. -->
 	<context-param>
 		<param-name>webAppRootKey</param-name>
-		<param-value>/WebRTCApp4</param-value>
+		<param-value>/WebRTCApEE</param-value>
 	</context-param>
 
 	<listener>
@@ -54,7 +54,7 @@
 		</servlet-class>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.packages</param-name>
-			<param-value>io.antmedia.webrtc.rest</param-value>
+			<param-value>io.antmedia.rest</param-value>
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>

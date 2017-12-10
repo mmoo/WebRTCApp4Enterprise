@@ -1,4 +1,4 @@
-package io.antmedia.webrtc;
+package io.antmedia.enterprise.webrtcapp.session;
 
 import java.util.HashMap;
 import java.util.Map;

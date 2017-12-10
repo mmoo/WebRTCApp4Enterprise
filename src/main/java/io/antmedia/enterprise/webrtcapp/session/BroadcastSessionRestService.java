@@ -1,4 +1,4 @@
-package io.antmedia.webrtc.rest;
+package io.antmedia.enterprise.webrtcapp.session;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +25,12 @@ import io.antmedia.datastore.db.types.Broadcast;
 import io.antmedia.datastore.db.types.Endpoint;
 import io.antmedia.enterprise.social.endpoint.FacebookEndpoint;
 import io.antmedia.enterprise.social.endpoint.YoutubeEndpoint;
+import io.antmedia.enterprise.webrtcapp.WebRTCApplication;
 import io.antmedia.rest.BroadcastRestService;
 import io.antmedia.rest.BroadcastRestService.Result;
 import io.antmedia.social.endpoint.PeriscopeEndpoint;
 import io.antmedia.social.endpoint.VideoServiceEndpoint;
 import io.antmedia.social.endpoint.VideoServiceEndpoint.DeviceAuthParameters;
-import io.antmedia.webrtc.PreferenceSessionStore;
-import io.antmedia.webrtc.WebRTCApplication;
 
 @Component
 @Path("/")
@@ -128,6 +127,8 @@ public class BroadcastSessionRestService extends BroadcastRestService{
 		
 		return result;
 	}
+	
+	
 	
 	
 
