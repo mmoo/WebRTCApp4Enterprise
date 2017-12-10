@@ -91,23 +91,6 @@ public class WebRTCApplication extends AntMediaApplicationAdapter implements App
 		return numberOfLiveStreams;
 	}
 
-	public void putEndpoints(String id, List<VideoServiceEndpoint> endpointList) {
-		endpointMap.put(id, endpointList);
-	}
 	
-	@Override
-	protected VideoServiceEndpoint getVideoServiceEndPoint(IBroadcastStream stream, String type) 
-	{
-		if (endpointMap.containsKey(stream.getPublishedName())) {
-			List<VideoServiceEndpoint> streamEndpoints = (List<VideoServiceEndpoint>) endpointMap.get(stream.getPublishedName());
-			
-			for (VideoServiceEndpoint serviceEndpoint : streamEndpoints) {
-				if (serviceEndpoint.getName().equals(type)) {
-					return serviceEndpoint;
-				}
-			}
-		}
-		return null;
-	}
 
 }
