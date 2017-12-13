@@ -269,7 +269,7 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 
 				WebRTCClient webRTCClient = webRTCClientsMap.get(connection.getId());
 				if (webRTCClient != null) {
-					webRTCAdaptor.deregisterWebRTCClient(webRTCClient.getStreamId(), webRTCClient);
+				//	webRTCAdaptor.deregisterWebRTCClient(webRTCClient.getStreamId(), webRTCClient);
 					webRTCClient.stop();
 				}
 				else {
