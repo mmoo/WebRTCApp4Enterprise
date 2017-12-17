@@ -66,6 +66,11 @@
 		<servlet-name>jersey-serlvet</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
 	</servlet-mapping>
+	
+	<servlet-mapping>
+    	<servlet-name>jsp</servlet-name>
+    	<url-pattern>*.html</url-pattern>
+  	</servlet-mapping>
 
 
 	<!-- The security-constraint element is used to associate security constraints 
@@ -73,7 +78,7 @@
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>Forbidden</web-resource-name>
-			<url-pattern>/streams/*</url-pattern>
+			<url-pattern>/streams/</url-pattern>
 		</web-resource-collection>
 		<auth-constraint />
 	</security-constraint>
