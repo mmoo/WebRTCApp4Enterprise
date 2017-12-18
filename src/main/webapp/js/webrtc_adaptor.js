@@ -202,6 +202,13 @@ function WebRTCAdaptor(initialValues)
 		}
 		return null;
 	}
+	
+	this.iceConnectionState = function() {
+		if (thiz.remotePeerConnection != null) {
+			return thiz.remotePeerConnection.iceConnectionState;
+		}
+		return null;
+	}
 
 	this.gotDescription = function(configuration) {
 		thiz.remotePeerConnection.setLocalDescription(configuration);
