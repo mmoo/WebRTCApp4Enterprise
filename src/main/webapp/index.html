@@ -174,7 +174,7 @@ body {
 		peerconnection_config : pc_config,
 		sdp_constraints : sdpConstraints,
 		localVideoId : "localVideo",
-		callback : function(info) {
+		callback : function(info, description) {
 			if (info == "initialized") {
 				console.log("initialized");
 				start_publish_button.disabled = false;
@@ -191,12 +191,18 @@ body {
 				start_publish_button.disabled = false;
 				stop_publish_button.disabled = true;
 			}
+			else if (info == "closed") {
+				//console.log("Connection closed");
+				if (typeof description != "undefined") {
+					console.log("Connecton closed: " + JSON.stringify(description));
+				}
+			}
 		},
 		callbackError : function(error) {
 			//some of the possible errors, NotFoundError, SecurityError,PermissionDeniedError
-
-			console.log("error callback: " + error);
-			alert(error);
+            
+			console.log("error callback: " +  JSON.stringify(error));
+			alert(JSON.stringify(error));
 		}
 	});
 </script>

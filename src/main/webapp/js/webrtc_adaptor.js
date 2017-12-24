@@ -16,9 +16,9 @@ function WebRTCAdaptor(initialValues)
 	thiz.streamName = null;
 	thiz.videoTrackSender = null;
 	thiz.audioTrackSender = null;
-	
+
 	thiz.isPlayMode = false;
-	
+
 	for(var key in initialValues) {
 		if(initialValues.hasOwnProperty(key)) {
 			this[key] = initialValues[key];
@@ -85,12 +85,12 @@ function WebRTCAdaptor(initialValues)
 		thiz.streamName = streamName;
 
 		var jsCmd;
-		
+
 		jsCmd = {
-					command : "publish",
-					streamName : streamName,
+				command : "publish",
+				streamName : streamName,
 		};
-		
+
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}
@@ -108,24 +108,24 @@ function WebRTCAdaptor(initialValues)
 
 	this.stop = function(streamName) {
 		thiz.closePeerConnection();
-		
+
 		var jsCmd = {
-					command : "stop",
-			};
-		
+				command : "stop",
+		};
+
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 
-		
+
 	}
 
 	this.join = function(streamName) {
 		thiz.streamName = streamName;
 
 		var jsCmd = {
-					command : "join",
-					streamName : streamName,
-			};
-		
+				command : "join",
+				streamName : streamName,
+		};
+
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}
@@ -202,7 +202,7 @@ function WebRTCAdaptor(initialValues)
 		}
 		return null;
 	}
-	
+
 	this.iceConnectionState = function() {
 		if (thiz.remotePeerConnection != null) {
 			return thiz.remotePeerConnection.iceConnectionState;
@@ -377,7 +377,7 @@ function WebRTCAdaptor(initialValues)
 	}
 
 	//this.WebSocketAdaptor = function() {
-    function WebSocketAdaptor() {
+	function WebSocketAdaptor() {
 		var wsConn = new WebSocket(thiz.websocket_url);
 
 		var connected = false;
@@ -389,6 +389,11 @@ function WebRTCAdaptor(initialValues)
 		}
 
 		this.send = function(text) {
+            
+			if (wsConn.readyState == 0 || wsConn.readyState == 2 || wsConn.readyState == 3) {
+				thiz.callbackError("WebSocketNotConnected");
+				return;
+			}
 			wsConn.send(text);
 		}
 
@@ -451,13 +456,15 @@ function WebRTCAdaptor(initialValues)
 		}
 
 		wsConn.onerror = function(error) {
-			console.log(" error occured: " + error);
+			console.log(" error occured: " + JSON.stringify(error));
 			thiz.callbackError(error)
 		}
 
 		wsConn.onclose = function(event) {
 			connected = false;
+
 			console.log("connection closed.");
+			thiz.callback("closed", event);
 		}
 	};
 }
