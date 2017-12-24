@@ -78,12 +78,14 @@ public:
 	MockH264Encoder(const cricket::VideoCodec& codec) : webrtc::H264EncoderImpl(codec) {
 
 		clock_ = webrtc::Clock::GetRealTimeClock();
+
 		delta_ntp_internal_ms_ = clock_->CurrentNtpInMilliseconds() -
 				clock_->TimeInMilliseconds();
 
 	}
 	static MockH264Encoder* Create(const cricket::VideoCodec& codec) {
 		LOG(WARNING) << "Creating MockH264Encoder.";
+
 		return new MockH264Encoder(codec);
 	}
 
@@ -101,7 +103,8 @@ public:
 		LOG(WARNING) <<" --- Encoder Init --- width:" << codec_settings->width <<
 				" start bitrate: " << codec_settings->startBitrate <<
 				" target bitrate: " << codec_settings->targetBitrate <<
-				" max bitrate: "<< codec_settings->maxBitrate << std::endl;
+				" max bitrate: "<< codec_settings->maxBitrate <<
+				" max frame rate: " << codec_settings->maxFramerate << std::endl;
 
 		//int initEncodeResult = H264EncoderImpl::InitEncode(codec_settings,
 		//		number_of_cores,
@@ -306,7 +309,8 @@ public:
 			webrtc::CodecSpecificInfo codec_specific;
 			codec_specific.codecType = webrtc::kVideoCodecH264;
 			codec_specific.codecSpecific.H264.packetization_mode = packetization_mode_;
-			//std::cerr  << "--- write video packet 7 ---" << std::endl;
+			//std::cerr  << "---OnEncodedImage  ---" << std::endl;
+
 			encoded_image_callback_->OnEncodedImage(encoded_image_, &codec_specific,
 					&frag_header);
 			//std::cerr  << "--- write video packet 8 --- " << std::endl;

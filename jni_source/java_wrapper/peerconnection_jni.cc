@@ -92,6 +92,7 @@
 #include "webrtc/api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "webrtc/api/audio_codecs/builtin_audio_encoder_factory.h"
 #include "adapt_bitrate.h"
+#include "webrtc/api/video/i420_buffer.h"
 
 
 using cricket::WebRtcVideoDecoderFactory;
@@ -929,10 +930,23 @@ class JavaVideoRendererWrapper
 
 	void OnFrame(const webrtc::VideoFrame& video_frame) override {
 		ScopedLocalRefFrame local_ref_frame(jni());
+
+		VideoFrame frameReady = video_frame;
+		if (video_frame.rotation() != VideoRotation::kVideoRotation_0) {
+			//rotate video if required
+			rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer(
+							 video_frame.video_frame_buffer());
+
+			frameReady = webrtc::VideoFrame(
+					         webrtc::I420Buffer::Rotate(*buffer->GetI420(), video_frame.rotation()),
+					         webrtc::kVideoRotation_0, video_frame.timestamp_us());
+		}
+
+		//I420Rotate
 		jobject j_frame =
 				(video_frame.video_frame_buffer()->native_handle() != nullptr)
-				? CricketToJavaTextureFrame(&video_frame)
-						: CricketToJavaI420Frame(&video_frame);
+				? CricketToJavaTextureFrame(&frameReady)
+						: CricketToJavaI420Frame(&frameReady);
 		// |j_callbacks_| is responsible for releasing |j_frame| with
 		// VideoRenderer.renderFrameDone().
 		jni()->CallVoidMethod(*j_callbacks_, j_render_frame_id_, j_frame);

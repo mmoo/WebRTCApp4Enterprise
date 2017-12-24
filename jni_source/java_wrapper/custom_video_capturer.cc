@@ -18,17 +18,19 @@ CustomVideoCapturer::CustomVideoCapturer():vframe(nullptr,webrtc::VideoRotation:
 	 format.width = 1280;
 	 format.height = 720;
 	 format.fourcc = cricket::FOURCC_I420;
-	 format.interval = 15;
+	 format.interval = cricket::VideoFormat::FpsToInterval(15);
 	supported.push_back(format);
+
 
 
 	cricket::VideoFormat format2;
 		 format2.width = 640;
 		 format2.height = 480;
 		 format2.fourcc = cricket::FOURCC_I420;
-		 format2.interval = 10;
+		 format2.interval = cricket::VideoFormat::FpsToInterval(15);
 
 		 supported.push_back(format2);
+
 
 	SetSupportedFormats(supported);
 }
@@ -45,7 +47,8 @@ cricket::CaptureState CustomVideoCapturer::Start(const cricket::VideoFormat& cap
 		return capture_state();
 	}
 
-    LOG(WARNING) << "capture format: " << capture_format.width <<" height: " << capture_format.height;
+    LOG(WARNING) << "capture format: " << capture_format.width <<" height: " << capture_format.height << " frame rate: "
+    		<< capture_format.framerate() << " interval: " << capture_format.interval;
 	m_startThread = rtc::Thread::Current();
 
 	//pthread_create(&g_pthread, NULL, grabCapture, (void*)this);

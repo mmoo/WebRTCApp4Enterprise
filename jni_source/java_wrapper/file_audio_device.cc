@@ -517,7 +517,7 @@ bool VirtualFileAudioDevice::RecordingWarning() const {
 }
 
 bool VirtualFileAudioDevice::RecordingError() const {
-	LOG(WARNING) << __FUNCTION__;
+	//LOG(WARNING) << __FUNCTION__;
 	return false; }
 
 void VirtualFileAudioDevice::ClearPlayoutWarning() {
