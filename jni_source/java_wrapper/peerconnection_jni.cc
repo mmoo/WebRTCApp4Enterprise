@@ -145,8 +145,7 @@ static jobject j_application_context = nullptr;
 //rtc::scoped_refptr<webrtc::AudioDeviceModule> adm;
 //std::unique_ptr<antmedia::CustomVideoCapturer> localCapturer;
 
-
-
+static int8_t mockAudioData[960 * 2 * 2];
 
 // Return the (singleton) Java Enum object corresponding to |index|;
 // |state_class_fragment| is something like "MediaSource$State".
@@ -1157,6 +1156,7 @@ JOW(void, PeerConnection_freeObserver)(JNIEnv*, jclass, jlong j_p) {
 
 JOW(void, MediaSource_free)(JNIEnv*, jclass, jlong j_p) {
 	reinterpret_cast<rtc::RefCountInterface*>(j_p)->Release();
+
 }
 
 JOW(void, VideoRenderer_freeWrappedVideoRenderer)(JNIEnv*, jclass, jlong j_p) {
@@ -1503,7 +1503,8 @@ JOW(jlong, PeerConnectionFactory_nativeCreatePeerConnectionFactory)(
 	}
 	OwnedFactoryAndThreads* owned_factory = new OwnedFactoryAndThreads(
 			std::move(network_thread), std::move(worker_thread),
-			std::move(signaling_thread), encoder_factory, decoder_factory,
+			std::move(signaling_thread),
+			encoder_factory, decoder_factory,
 			network_monitor_factory, factory.release(), adm.release(), audio_encoder_factory.release());
 
 	if (encoder_factory != nullptr) {
@@ -1523,6 +1524,7 @@ JOW(void, PeerConnectionFactory_nativeFreeFactory)(JNIEnv*, jclass, jlong j_p) {
 		field_trials_init_string = NULL;
 	}
 	webrtc::Trace::ReturnTrace();
+
 }
 
 static PeerConnectionFactoryInterface* factoryFromJava(jlong j_p) {
@@ -2437,7 +2439,25 @@ JOW(void, AudioSource_nativeWriteAudioFrame)(JNIEnv* jni,
 
 	jni->ReleaseByteArrayElements(j_frame, data, JNI_ABORT);
 
-		}
+}
+
+
+
+JOW(void, AudioSource_nativeWriteMockAudioFrame)(JNIEnv* jni,
+		jclass, jlong j_p, jint sample_count)
+		{
+
+	OwnedFactoryAndThreads *factory =
+			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
+
+	//factory->worker_thread()->Invoke<void>(posted_from, functor)
+	CustomAudioDeviceModule* cadm = (CustomAudioDeviceModule*)factory->audio_device_module();
+	factory->worker_thread()->Invoke<void>(RTC_FROM_HERE,
+			[&] {
+		cadm->WriteAudioFrame(mockAudioData, sample_count);
+	});
+
+}
 
 JOW(void, VideoSource_nativeWriteMockVideoFrame)
 (JNIEnv* jni, jclass, jlong j_p,  jint width, jint height) {

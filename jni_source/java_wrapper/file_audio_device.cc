@@ -561,6 +561,18 @@ bool VirtualFileAudioDevice::RecThreadFunc(void* pThis)
 	return (static_cast<VirtualFileAudioDevice*>(pThis)->RecThreadProcess());
 }
 
+void SleepMicroSeconds(int microSecs) {
+#ifdef _WIN32
+  //Sleep(msecs);
+#else
+  struct timespec short_wait;
+  struct timespec remainder;
+  short_wait.tv_sec = microSecs / 1000000;
+  short_wait.tv_nsec = (microSecs % 1000000) * 1000;
+  nanosleep(&short_wait, &remainder);
+#endif
+}
+
 bool VirtualFileAudioDevice::PlayThreadProcess()
 {
 	//LOG(WARNING) << " PlayThreadProcess";
@@ -573,9 +585,9 @@ bool VirtualFileAudioDevice::PlayThreadProcess()
 	_critSect.Enter();
 
 	int64_t timeDiff = currentTime - _lastCallPlayoutMillis;
-	if (_lastCallPlayoutMillis == 0 ||timeDiff >= 10000)
+	if (_lastCallPlayoutMillis == 0 || timeDiff >= 10000)
 	{
-		//	LOG(WARNING) << " request playout data";
+		 //LOG(WARNING) << " request playout data time diff: " << timeDiff << std::endl;
 		_critSect.Leave();
 		_ptrAudioBuffer->RequestPlayoutData(_playoutFramesIn10MS);
 		_critSect.Enter();
@@ -586,20 +598,9 @@ bool VirtualFileAudioDevice::PlayThreadProcess()
 	int64_t nextCallTime = _lastCallPlayoutMillis + 10000;
 	int64_t waitTime = nextCallTime - rtc::TimeMicros();
 
-	if (waitTime > 5000) {
-		SleepMs(5);
-	}
-	else if (waitTime > 4000) {
-		SleepMs(4);
-	}
-	else if (waitTime > 3000) {
-		SleepMs(3);
-	}
-	else if (waitTime > 2000) {
-		SleepMs(2);
-	}
-	else if (waitTime > 0) {
-		SleepMs(1);
+	if (waitTime > 1000)
+	{
+		SleepMicroSeconds(waitTime);
 	}
 
 
