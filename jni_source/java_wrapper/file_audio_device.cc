@@ -598,7 +598,7 @@ bool VirtualFileAudioDevice::PlayThreadProcess()
 	int64_t nextCallTime = _lastCallPlayoutMillis + 10000;
 	int64_t waitTime = nextCallTime - rtc::TimeMicros();
 
-	if (waitTime > 1000)
+	if (waitTime > 0)
 	{
 		SleepMicroSeconds(waitTime);
 	}
