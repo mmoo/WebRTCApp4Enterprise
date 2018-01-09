@@ -600,7 +600,7 @@ bool VirtualFileAudioDevice::PlayThreadProcess()
 
 	if (waitTime > 0)
 	{
-		SleepMicroSeconds(1);
+		SleepMicroSeconds(waitTime);
 	}
 
 
@@ -693,7 +693,7 @@ bool VirtualFileAudioDevice::RecThreadProcess()
 
 	_critSect.Leave();
 
-	SleepMicroSeconds(1);
+	SleepMicroSeconds(100);
 
 	return true;
 }
