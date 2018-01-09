@@ -578,6 +578,9 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 		rtc::ArrayView<const int16_t> audio,
 		rtc::Buffer* encoded)
 {
+
+	_critSect.Enter();
+
 	MaybeUpdateUplinkBandwidth();
 
 	if (input_buffer_.empty())
@@ -586,11 +589,12 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	input_buffer_.insert(input_buffer_.end(), audio.cbegin(), audio.cend());
 	if (input_buffer_.size() <
 			(Num10msFramesPerPacket() * SamplesPer10msFrame())) {
+		_critSect.Leave();
 		return EncodedInfo();
 	}
-	RTC_CHECK_EQ(input_buffer_.size(),
+/*	RTC_CHECK_EQ(input_buffer_.size(),
 			Num10msFramesPerPacket() * SamplesPer10msFrame());
-
+*/
 
 //	std::cerr << " opus encoded buffer size before encode -> " <<encoded->size() << std::endl;
 	const size_t max_encoded_bytes = SufficientOutputBufferSize();
@@ -600,9 +604,19 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 
 	if (encodedPacketQueue.empty()) {
 		std::cerr << "--- Encoded Audio Packet Queue is Empty -- " << std::endl;
+		_critSect.Leave();
 		return info;
 	}
 	EncodedPacket* packet = encodedPacketQueue.front();
+
+
+	//std::cerr << " packet  "<< packet <<std::endl;
+	if (!packet->packet_data) {
+		std::cerr << "There is no data in packet " << std::endl;
+	}
+	//std::cerr << "packet data size: " << packet->packet_data_size
+	//		<< " encode impl packet data : " << packet->packet_data << "  -- "<<std::endl;
+
 	encoded->AppendData(packet->packet_data, packet->packet_data_size);
 	info.encoded_bytes = packet->packet_data_size;
 
@@ -612,40 +626,25 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	//std::cerr << " audio timestamp " << packet->timestamp;
 	uint32_t packetTimeStamp = (SampleRateHz()/1000) * packet->timestamp;
 
+
 	delete packet;
+	//std::cerr << " deleted packet " << std::endl;
 
-/*
-  info.encoded_bytes =
-      encoded->AppendData(
-          max_encoded_bytes, [&] (rtc::ArrayView<uint8_t> encoded) {
-            int status = WebRtcOpus_Encode(
-                inst_, &input_buffer_[0],
-                rtc::CheckedDivExact(input_buffer_.size(),
-                                     config_.num_channels),
-                rtc::saturated_cast<int16_t>(max_encoded_bytes),
-                encoded.data());
 
-            RTC_CHECK_GE(status, 0);  // Fails only if fed invalid data.
-
-            return static_cast<size_t>(status);
-          });
-*/
 	input_buffer_.clear();
 
 	// Will use new packet size for next encoding.
 	config_.frame_size_ms = next_frame_length_ms_;
 
-//	std::cerr << " opus encoded buffer size after encode -> " << std::dec << encoded->size() << std::endl;
 
-	//	for (int i=0; i < encoded->size(); i++ ) {
-	//	  std::cerr << "opus encoded data " << std::dec << i << "  " << std::hex << (int)encoded->data()[i] << std::endl;
-	//	}
 
 	info.encoded_timestamp = packetTimeStamp; // first_timestamp_in_buffer_;
 	info.payload_type = config_.payload_type;
 	info.send_even_if_empty = true;  // Allows Opus to send empty packets.
 	info.speech = (info.encoded_bytes > 0);
 	info.encoder_type = CodecType::kOpus;
+
+	_critSect.Leave();
 	return info;
 }
 

@@ -141,12 +141,22 @@ class MockOpusEncoder final : public AudioEncoder {
 
   void addEncodedData(uint8_t* packet_data, int packet_data_size, long timestamp) {
 
+	  _critSect.Enter();
+
 	  uint8_t* p_packet_data = new uint8_t[packet_data_size];
+
+	  if (!p_packet_data) {
+		  std::cerr << "packet is not allocated." << std::endl;
+	   }
 	  memcpy(p_packet_data, packet_data, packet_data_size);
+
+	  //std::cerr << " add encoded data length: " <<  packet_data_size <<std::endl;
 
 	  EncodedPacket* packet = new EncodedPacket(nullptr, 0, p_packet_data, packet_data_size, 0, 0, false, timestamp);
 
 	  encodedPacketQueue.push(packet);
+
+	  _critSect.Leave();
 
   }
 
@@ -200,6 +210,8 @@ class MockOpusEncoder final : public AudioEncoder {
   rtc::Optional<size_t> overhead_bytes_per_packet_;
   const std::unique_ptr<SmoothingFilter> bitrate_smoother_;
   rtc::Optional<int64_t> bitrate_smoother_last_update_time_;
+
+  rtc::CriticalSection _critSect;
 
 
   RTC_DISALLOW_COPY_AND_ASSIGN(MockOpusEncoder);

@@ -44,6 +44,14 @@ CustomAudioDeviceModule::CustomAudioDeviceModule(const int32_t id,
 	LOG(INFO) << __FUNCTION__;
 }
 
+void CustomAudioDeviceModule::newFrameAvailable(int sample_count) {
+
+
+	VirtualFileAudioDevice* audioDevice = (VirtualFileAudioDevice*)_ptrAudioDevice;
+	audioDevice->NewFrameAvailable(sample_count);
+
+}
+
 
 
 int32_t CustomAudioDeviceModule::CreateObjects() {

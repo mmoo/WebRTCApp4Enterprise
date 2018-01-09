@@ -269,11 +269,11 @@ int32_t VirtualFileAudioDevice::StartRecording() {
 		_recordingBuffer = new int8_t[_recordingBufferSizeIn10MS];
 	}
 
-	//_ptrThreadRec.reset(new rtc::PlatformThread(
-	//		RecThreadFunc, this, "webrtc_audio_module_capture_thread"));
+	_ptrThreadRec.reset(new rtc::PlatformThread(
+			RecThreadFunc, this, "webrtc_audio_module_capture_thread"));
 
-	//_ptrThreadRec->Start();
-	//_ptrThreadRec->SetPriority(rtc::kRealtimePriority);
+	_ptrThreadRec->Start();
+	_ptrThreadRec->SetPriority(rtc::kRealtimePriority);
 
 	LOG(LS_INFO) << "Started recording ";
 
@@ -600,7 +600,7 @@ bool VirtualFileAudioDevice::PlayThreadProcess()
 
 	if (waitTime > 0)
 	{
-		SleepMicroSeconds(waitTime);
+		SleepMicroSeconds(1);
 	}
 
 
@@ -647,18 +647,25 @@ bool VirtualFileAudioDevice::WriteAudioFrame(int8_t* data, size_t sample_count) 
 
 }
 
+void VirtualFileAudioDevice::NewFrameAvailable(int sampleCount) {
+	_critSect.Enter();
+	this->newFrameSampleCount = sampleCount;
+	_critSect.Leave();
+}
+
 bool VirtualFileAudioDevice::RecThreadProcess()
 {
-	LOG(WARNING) << __FUNCTION__;
+	//LOG(WARNING) << __FUNCTION__;
 	if (!_recording) {
 		return false;
 	}
 
-	int64_t currentTime = rtc::TimeMillis();
+	//int64_t currentTime = rtc::TimeMillis();
 	_critSect.Enter();
 
-	if (_lastCallRecordMillis == 0 ||
-			currentTime - _lastCallRecordMillis >= 10) {
+
+
+	if (newFrameSampleCount != 0) {
 		//if (_inputFile.is_open())
 		{
 			/*
@@ -669,21 +676,24 @@ bool VirtualFileAudioDevice::RecThreadProcess()
 				_inputFile.Rewind();
 			}
 			 */
-			_ptrAudioBuffer->SetRecordedBuffer(_recordingBuffer,
-					_recordingFramesIn10MS);
-			_lastCallRecordMillis = currentTime;
-			_critSect.Leave();
-			_ptrAudioBuffer->DeliverRecordedData();
-			_critSect.Enter();
+
+			int frameCount = newFrameSampleCount / _recordingFramesIn10MS;
+			for (int i = 0; i < frameCount; i++) {
+				_ptrAudioBuffer->SetRecordedBuffer(_recordingBuffer,
+									_recordingFramesIn10MS);
+				_lastCallRecordMillis = 0; //currentTime;
+				newFrameSampleCount -= _recordingFramesIn10MS;
+				_critSect.Leave();
+				_ptrAudioBuffer->DeliverRecordedData();
+				_critSect.Enter();
+			}
+
 		}
 	}
 
 	_critSect.Leave();
 
-	int64_t deltaTimeMillis = rtc::TimeMillis() - currentTime;
-	if (deltaTimeMillis < 10) {
-		SleepMs(10 - deltaTimeMillis);
-	}
+	SleepMicroSeconds(1);
 
 	return true;
 }

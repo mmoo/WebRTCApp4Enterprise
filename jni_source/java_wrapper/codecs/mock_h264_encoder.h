@@ -282,9 +282,9 @@ public:
 
 		//timestamp is in milliseconds
 		//std::cerr << " video timestamp " << timestamp;
-		encoded_image_.ntp_time_ms_ = timestamp; // clock_->TimeInMilliseconds() + delta_ntp_internal_ms_; //input_frame.ntp_time_ms();
+		encoded_image_.ntp_time_ms_ = timestamp; // clock_->TimeInMilliseconds() + delta_ntp_internal_ms_; // input_frame.ntp_time_ms();
 		encoded_image_.capture_time_ms_ = encoded_image_.ntp_time_ms_;
-		encoded_image_._timeStamp = kMsToRtpTimestamp * static_cast<uint32_t>(timestamp);
+		encoded_image_._timeStamp = kMsToRtpTimestamp * static_cast<uint32_t>(encoded_image_.ntp_time_ms_); //timestamp
 
 		//encoded_image_.capture_time_ms_ = 0; //input_frame.render_time_ms();
 		encoded_image_.rotation_ = webrtc::kVideoRotation_0;

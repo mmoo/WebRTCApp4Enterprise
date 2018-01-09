@@ -162,6 +162,8 @@ class VirtualFileAudioDevice : public AudioDeviceGeneric {
 
   bool WriteAudioFrame(int8_t* data, size_t sample_count);
 
+  void NewFrameAvailable(int sampleCount);
+
  private:
   static bool RecThreadFunc(void*);
   static bool PlayThreadFunc(void*);
@@ -191,6 +193,8 @@ class VirtualFileAudioDevice : public AudioDeviceGeneric {
   bool _playIsInitialized;
   int64_t _lastCallPlayoutMillis;
   int64_t _lastCallRecordMillis;
+
+  int newFrameSampleCount;
 
 };
 

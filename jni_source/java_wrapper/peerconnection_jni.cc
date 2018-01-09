@@ -2327,7 +2327,7 @@ JOW(void, PeerConnection_close)(JNIEnv* jni, jobject j_pc) {
 	return;
 }
 
-JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length, jlong timestamp) {
+JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length, jlong timestamp, jint totalSampleCount) {
 	OwnedFactoryAndThreads *factory =
 			reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
 
@@ -2344,6 +2344,25 @@ JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong
 	mockOpusEncoder->addEncodedData((uint8_t*)data, j_packet_length, timestamp);
 
 	jni->ReleaseByteArrayElements(j_packet, data, JNI_ABORT);
+
+	//factory->worker_thread()->Invoke<void>(posted_from, functor)
+
+	CustomAudioDeviceModule* cadm = (CustomAudioDeviceModule*)factory->audio_device_module();
+	cadm->newFrameAvailable(totalSampleCount);
+
+	/*factory->worker_thread()->Invoke<void>(RTC_FROM_HERE,
+			[&] {
+		//totalSampleCount must be multiple for 480
+
+	    int mockFrameCount = totalSampleCount / 480;
+	    for (int i=0; i < mockFrameCount; i++) {
+	    	cadm->WriteAudioFrame(mockAudioData, 480);
+	    }
+
+	});
+	*/
+
+
 }
 
 JOW(int, PeerConnectionFactory_nativeAddVideoPacket)(JNIEnv* jni, jclass, jlong j_p, jbyteArray j_packet, jint j_packet_length, jint width, jint height, jboolean isKeyFrame, jlong timestamp) {
@@ -2363,6 +2382,8 @@ JOW(int, PeerConnectionFactory_nativeAddVideoPacket)(JNIEnv* jni, jclass, jlong 
 	int result = encoder->addEncodedPacketData(nullptr, 0, (uint8_t*)data, j_packet_length, width, height, isKeyFrame, timestamp);
 
 	jni->ReleaseByteArrayElements(j_packet, data, JNI_ABORT);
+
+	factory->video_capturer()->writeMockFrame(width, height);
 
 	return result;
 }
@@ -2391,6 +2412,8 @@ JOW(int, PeerConnectionFactory_nativeAddVideoConfPacket)(JNIEnv* jni, jclass, jl
 
 	jni->ReleaseByteArrayElements(j_conf_data, confData, JNI_ABORT);
 	jni->ReleaseByteArrayElements(j_packet_data, data, JNI_ABORT);
+
+	factory->video_capturer()->writeMockFrame(width, height);
 
 	return result;
 

@@ -17,6 +17,7 @@ namespace antmedia {
 
 class CustomAudioDeviceModule : public AudioDeviceModuleImpl {
 
+
 public:
 
 	  static rtc::scoped_refptr<webrtc::AudioDeviceModule> Create(
@@ -30,6 +31,8 @@ public:
 	  int32_t CreateObjects();
 
 	  bool WriteAudioFrame(int8_t* data, size_t sample_count);
+
+	  void newFrameAvailable(int sample_count);
 
 };
 
