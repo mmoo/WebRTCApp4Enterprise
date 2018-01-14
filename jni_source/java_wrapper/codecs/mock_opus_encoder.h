@@ -141,7 +141,7 @@ class MockOpusEncoder final : public AudioEncoder {
 
   void addEncodedData(uint8_t* packet_data, int packet_data_size, long timestamp) {
 
-	  _critSect.Enter();
+
 
 	  uint8_t* p_packet_data = new uint8_t[packet_data_size];
 
@@ -154,8 +154,8 @@ class MockOpusEncoder final : public AudioEncoder {
 
 	  EncodedPacket* packet = new EncodedPacket(nullptr, 0, p_packet_data, packet_data_size, 0, 0, false, timestamp);
 
+	  _critSect.Enter();
 	  encodedPacketQueue.push(packet);
-
 	  _critSect.Leave();
 
   }

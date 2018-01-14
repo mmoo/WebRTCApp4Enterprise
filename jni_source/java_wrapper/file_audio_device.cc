@@ -313,11 +313,13 @@ bool VirtualFileAudioDevice::Recording() const {
 
 int32_t VirtualFileAudioDevice::SetAGC(bool enable) {
 	LOG(WARNING) << __FUNCTION__;
-	return -1; }
+	return 0;
+}
 
 bool VirtualFileAudioDevice::AGC() const {
 	LOG(WARNING) << __FUNCTION__;
-	return false; }
+	return false;
+}
 
 int32_t VirtualFileAudioDevice::SetWaveOutVolume(uint16_t volumeLeft,
 		uint16_t volumeRight) {
@@ -333,11 +335,13 @@ int32_t VirtualFileAudioDevice::WaveOutVolume(uint16_t& volumeLeft,
 
 int32_t VirtualFileAudioDevice::InitSpeaker() {
 	LOG(WARNING) << __FUNCTION__;
-	return 0; }
+	return 0;
+}
 
 bool VirtualFileAudioDevice::SpeakerIsInitialized() const {
 	LOG(WARNING) << __FUNCTION__;
-	return false; }
+	return false;
+}
 
 int32_t VirtualFileAudioDevice::InitMicrophone() { LOG(WARNING) << __FUNCTION__;
 return 0; }
@@ -666,6 +670,7 @@ bool VirtualFileAudioDevice::RecThreadProcess()
 
 
 	if (newFrameSampleCount != 0) {
+		//LOG(WARNING) <<  " new frame sample count: " <<newFrameSampleCount << " time is: " << rtc::TimeMillis();
 		//if (_inputFile.is_open())
 		{
 			/*
@@ -683,10 +688,12 @@ bool VirtualFileAudioDevice::RecThreadProcess()
 									_recordingFramesIn10MS);
 				_lastCallRecordMillis = 0; //currentTime;
 				newFrameSampleCount -= _recordingFramesIn10MS;
-				_critSect.Leave();
+
 				_ptrAudioBuffer->DeliverRecordedData();
-				_critSect.Enter();
+
 			}
+
+			//LOG(WARNING) << "leaving loop sample count:" << newFrameSampleCount << " recordingFamesIn10Ms " << _recordingFramesIn10MS;
 
 		}
 	}

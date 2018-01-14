@@ -579,36 +579,55 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 		rtc::Buffer* encoded)
 {
 
-	_critSect.Enter();
-
 	MaybeUpdateUplinkBandwidth();
 
+	/*
 	if (input_buffer_.empty())
 		first_timestamp_in_buffer_ = rtp_timestamp;
 
 	input_buffer_.insert(input_buffer_.end(), audio.cbegin(), audio.cend());
 	if (input_buffer_.size() <
 			(Num10msFramesPerPacket() * SamplesPer10msFrame())) {
-		_critSect.Leave();
+
 		return EncodedInfo();
 	}
+	*/
+
 /*	RTC_CHECK_EQ(input_buffer_.size(),
 			Num10msFramesPerPacket() * SamplesPer10msFrame());
 */
 
 //	std::cerr << " opus encoded buffer size before encode -> " <<encoded->size() << std::endl;
-	const size_t max_encoded_bytes = SufficientOutputBufferSize();
+//	const size_t max_encoded_bytes = SufficientOutputBufferSize();
 
 
 	EncodedInfo info;
 
+
+
+	_critSect.Enter();
 	if (encodedPacketQueue.empty()) {
-		std::cerr << "--- Encoded Audio Packet Queue is Empty -- " << std::endl;
+		//std::cerr << "--- Encoded Audio Packet Queue is Empty -- " << std::endl;
+		first_timestamp_in_buffer_ = 0;
 		_critSect.Leave();
 		return info;
 	}
+
+	int queueSize = encodedPacketQueue.size();
+	if (queueSize > 5) {
+		std::cerr << " -- Number of audio packet in the queue  " << encodedPacketQueue.size() << std::endl;
+		for (int i = 2; i < queueSize; i++) {
+			EncodedPacket* packet = encodedPacketQueue.front();
+			encodedPacketQueue.pop();
+			delete packet;
+		}
+		std::cerr << " -- dropping audio packets, new queue size  " << encodedPacketQueue.size() << std::endl;
+	}
+
 	EncodedPacket* packet = encodedPacketQueue.front();
 
+	encodedPacketQueue.pop();
+	_critSect.Leave();
 
 	//std::cerr << " packet  "<< packet <<std::endl;
 	if (!packet->packet_data) {
@@ -620,7 +639,7 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	encoded->AppendData(packet->packet_data, packet->packet_data_size);
 	info.encoded_bytes = packet->packet_data_size;
 
-	encodedPacketQueue.pop();
+
 
 	//packet timestamp is in milliseconds
 	//std::cerr << " audio timestamp " << packet->timestamp;
@@ -630,13 +649,10 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	delete packet;
 	//std::cerr << " deleted packet " << std::endl;
 
-
 	input_buffer_.clear();
 
 	// Will use new packet size for next encoding.
 	config_.frame_size_ms = next_frame_length_ms_;
-
-
 
 	info.encoded_timestamp = packetTimeStamp; // first_timestamp_in_buffer_;
 	info.payload_type = config_.payload_type;
@@ -644,7 +660,6 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	info.speech = (info.encoded_bytes > 0);
 	info.encoder_type = CodecType::kOpus;
 
-	_critSect.Leave();
 	return info;
 }
 
