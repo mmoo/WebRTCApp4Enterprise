@@ -59,11 +59,16 @@ public:
 	bool isKeyFrame;
 	long timestamp;
 
+
+
 };
 
 
 class MockH264Encoder : public webrtc::H264EncoderImpl {
 
+
+private:
+	rtc::CriticalSection _critSect;
 public:
 
 	//bool initialized = false;
@@ -146,7 +151,9 @@ public:
 
 		EncodedPacket* packet = new EncodedPacket(p_extradata, extradata_size, p_packet_data, packet_data_size, width, height, isKeyFrame, timestamp);
 
+		_critSect.Enter();
 		encodedPacketQueue.push(packet);
+		_critSect.Leave();
 
 		return 0;
 	}
@@ -263,7 +270,7 @@ public:
 		}
 
 		if (encoded_image_._size < (nal_offset + extradata_size)) {
-			std::cerr << "\n ------ resetting buffer -----------";
+			std::cerr << "\n ------ resetting buffer -----------" << std::endl;
 			encoded_image_._size = packet_size + extradata_size;
 			encoded_image_._buffer = new uint8_t[packet_size + extradata_size];
 			encoded_image_buffer_.reset(encoded_image_._buffer);
@@ -363,8 +370,10 @@ public:
 			return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
 		}
 
+		_critSect.Enter();
 		if (encodedPacketQueue.empty()) {
 			std::cerr << "--- Encoded Video Packet Queue is Empty -- " << std::endl;
+			_critSect.Leave();
 			return WEBRTC_VIDEO_CODEC_ERROR;
 		}
 
@@ -380,8 +389,11 @@ public:
 			}
 
 		EncodedPacket* packet = encodedPacketQueue.front();
-		writeConfPacket(packet->extradata, packet->extradata_size, packet->packet_data, packet->packet_data_size, packet->width, packet->height, packet->isKeyFrame, packet->timestamp);
 		encodedPacketQueue.pop();
+		_critSect.Leave();
+
+		writeConfPacket(packet->extradata, packet->extradata_size, packet->packet_data, packet->packet_data_size, packet->width, packet->height, packet->isKeyFrame, packet->timestamp);
+
 
 		delete packet;
 

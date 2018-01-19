@@ -164,6 +164,27 @@ class VirtualFileAudioDevice : public AudioDeviceGeneric {
 
   void NewFrameAvailable(int sampleCount);
 
+
+   bool BuiltInAECIsAvailable() const override {
+	   return true;
+   }
+   bool BuiltInAGCIsAvailable() const override {
+	   return true;
+   }
+   bool BuiltInNSIsAvailable() const override {
+	   return true;
+   }
+
+   int32_t EnableBuiltInAEC(bool enable) override {
+	   return 0;
+   }
+   int32_t EnableBuiltInAGC(bool enable) override {
+	   return 0;
+   }
+   int32_t EnableBuiltInNS(bool enable) override {
+	   return 0;
+   }
+
  private:
   static bool RecThreadFunc(void*);
   static bool PlayThreadFunc(void*);

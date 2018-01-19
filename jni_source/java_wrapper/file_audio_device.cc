@@ -318,7 +318,7 @@ int32_t VirtualFileAudioDevice::SetAGC(bool enable) {
 
 bool VirtualFileAudioDevice::AGC() const {
 	LOG(WARNING) << __FUNCTION__;
-	return false;
+	return true;
 }
 
 int32_t VirtualFileAudioDevice::SetWaveOutVolume(uint16_t volumeLeft,

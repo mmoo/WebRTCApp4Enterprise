@@ -59,6 +59,7 @@ cricket::CaptureState CustomVideoCapturer::Start(const cricket::VideoFormat& cap
 
 void CustomVideoCapturer::Stop()
 {
+	LOG(WARNING) << "Custom Video Capturer Stop";
 	std::cout << "Stop";
 	if (capture_state() == cricket::CS_STOPPED) {
 		std::cout << "Stop called when it's already stopped.";
@@ -86,6 +87,9 @@ void* CustomVideoCapturer::grabCapture(void* arg) {
  */
 
 void CustomVideoCapturer::stop() {
+
+	LOG(WARNING) << "Custom Video Capturer stop";
+
 	if (m_startThread->IsCurrent()) {
 		SetCaptureState(cricket::CS_STOPPED);
 		//VideoCapturer::OnFrame(frame, frame.width(), frame.height());
