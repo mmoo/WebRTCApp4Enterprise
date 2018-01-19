@@ -61,8 +61,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 
 	private IWebRTCAdaptor webRTCAdaptor;
 
-	private String baseUrl = "rtmp://127.0.0.1/WebRTCApp4/";
-
 	private ApplicationContext applicationContext;
 
 	private Map<String, List<WebSocketConnection>> signallingConnections = new HashMap<String, List<WebSocketConnection>>();
@@ -150,8 +148,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					connection.send(jsonResponse.toJSONString());
 					return;
 				}
-				String outputURL = baseUrl + streamName;
-
 
 				WebRTCEncoderAdaptor encoderAdaptor = getNewWebRTCEncoderAdaptor();
 
@@ -174,8 +170,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 					connection.send(jsonResponse.toJSONString());
 					return;
 				}
-				String inputURL = getBaseURL() + streamName;
-
 				//get WebRTCAdaptor bean
 
 				//ask WebRTCAdaptor that whether there is a live stream with the specified name
@@ -421,15 +415,6 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 		return result;
 
 	}
-
-	private String getBaseURL() {
-		return baseUrl ;
-	}
-
-	public void setBaseUrl(String baseUrl) {
-		this.baseUrl = baseUrl;
-	}
-
 
 	@Override
 	public void onWSMessage(WSMessage message) {
