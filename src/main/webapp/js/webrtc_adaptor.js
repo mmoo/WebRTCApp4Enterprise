@@ -18,6 +18,7 @@ function WebRTCAdaptor(initialValues)
 	thiz.audioTrackSender = null;
 
 	thiz.isPlayMode = false;
+	thiz.debug = false;
 
 	for(var key in initialValues) {
 		if(initialValues.hasOwnProperty(key)) {
@@ -171,6 +172,10 @@ function WebRTCAdaptor(initialValues)
 					id : event.candidate.sdpMid,
 					candidate : event.candidate.candidate
 			};
+			
+			if (thiz.debug) {
+				console.log("sending ice candiate: " + JSON.stringify(event.candidate));
+			}
 
 			thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 		}
@@ -220,6 +225,11 @@ function WebRTCAdaptor(initialValues)
 				sdp : configuration.sdp
 
 		};
+		
+		if (thiz.debug) {
+			console.log("local sdp: " );
+			console.log(configuration);
+		}
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}
@@ -383,7 +393,10 @@ function WebRTCAdaptor(initialValues)
 		var connected = false;
 
 		wsConn.onopen = function() {
-			console.log("websocket connected");
+			if (thiz.debug) {
+				console.log("websocket connected");
+			}
+			
 			connected = true;
 			thiz.callback("initialized");
 		}
@@ -407,12 +420,17 @@ function WebRTCAdaptor(initialValues)
 			if (obj.command == "start") {
 				thiz.initPeerConnection();
 
-				console.log("received start command");
+				if (thiz.debug) {
+					console.log("received start command");
+				}
+				
 
 				thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
 				.then(thiz.gotDescription)
 				.catch(function () {
-					console.log("create offer error");
+					if (thiz.debug) {
+						console.log("create offer error");
+					}
 				});
 			}
 			else if (obj.command == "takeCandidate") {
@@ -423,7 +441,10 @@ function WebRTCAdaptor(initialValues)
 					candidate : obj.candidate
 				});
 				thiz.remotePeerConnection.addIceCandidate(candidate);
-				console.log("received ice candidate");
+				if (thiz.debug) {
+					console.log("received ice candidate: ");
+					console.log(candidate);
+				}
 
 			} else if (obj.command == "takeConfiguration") {
 
@@ -433,8 +454,11 @@ function WebRTCAdaptor(initialValues)
 					sdp : obj.sdp,
 					type : obj.type
 				}));
-				console.log("received remote description type:" + obj.type)
-
+				if (thiz.debug) {
+					console.log("received remote description type:" );
+					console.log(obj);
+				}
+				
 				if (obj.type == "offer") {
 					thiz.remotePeerConnection.createAnswer(thiz.sdp_constraints)
 					.then(thiz.gotDescription)
