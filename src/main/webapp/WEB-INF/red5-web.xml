@@ -102,6 +102,7 @@
       <property name="hlsPlayListType" value="${settings.hlsPlayListType}" />
       <property name="webRTCEnabled" value="${settings.webRTCEnabled}" />
       <property name="deleteHLSFilesOnEnded" value="${settings.deleteHLSFilesOnEnded}" />
+      <property name="serverName" value="#{ @'ant.media.server.settings'.serverName }" />
 		
 	</bean>
 
