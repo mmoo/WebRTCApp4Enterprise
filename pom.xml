@@ -4,11 +4,10 @@
 	<groupId>io.antmedia.webrtc</groupId>
 	<artifactId>WebRTCAppEE</artifactId>
 	<packaging>war</packaging>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.2.0</version>
 	<name>WebRTCApp4 Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
-		<ant-media-server.version>1.0.9-M2</ant-media-server.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<tomcatplugin.version>1.18</tomcatplugin.version>
 		<websocket.version>1.9</websocket.version>
@@ -31,11 +30,24 @@
 		<xerces.version>2.11.0</xerces.version>
 		<cglib.version>3.2.4</cglib.version>
 		<tomcat.version>8.5.11</tomcat.version>
-		<red5-server.version>1.0.9-M2</red5-server.version>
 		<servlet.version>2.5</servlet.version>
 		<javacpp.ffmpeg.version>3.2.1-1.3</javacpp.ffmpeg.version>
 		<jersey.version>2.26</jersey.version>
 	</properties>
+	<developers>
+    		<developer>
+      		<id>mekya</id>
+      		<email>mekya@antmedia.io</email>
+    		</developer>
+  	</developers>
+  	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
@@ -147,13 +159,13 @@
 		<dependency>
 			<groupId>io.antmedia</groupId>
 			<artifactId>ant-media-server</artifactId>
-			<version>${ant-media-server.version}</version>
+			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.antmedia.enterprise</groupId>
 			<artifactId>ant-media-enterprise</artifactId>
-			<version>1.0</version>
+			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -272,4 +284,14 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<description>WebRTCApp for Ant Media Server Enterprise Edition</description>
+	<organization>
+		<name>Ant Media</name>
+		<url>http://antmedia.io</url>
+	</organization>
+	<scm>
+		<url>https://gitlab.com/Ant-Media/WebRTCApp4Enterprise.git</url>
+		<connection>https://gitlab.com/Ant-Media/WebRTCApp4Enterprise.git</connection>
+		<developerConnection>https://gitlab.com/Ant-Media/WebRTCApp4Enterprise.git</developerConnection>
+	</scm>
 </project>
