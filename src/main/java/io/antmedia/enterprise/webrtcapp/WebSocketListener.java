@@ -453,6 +453,11 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 	@Override
 	public void onWSDisconnect(WebSocketConnection conn) {
 		connections.remove(conn);
+		
+		WebRTCEncoderAdaptor encoderAdaptor = publisherAdaptorList.remove(conn.getId());
+		if (encoderAdaptor != null) {
+			encoderAdaptor.stop();
+		}
 
 		wsSignallingDisconnected(conn);
 	}

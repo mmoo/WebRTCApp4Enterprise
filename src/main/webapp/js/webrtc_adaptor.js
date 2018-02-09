@@ -1,12 +1,12 @@
 
 
 /**
- * 
+ *
  * @returns
  */
 
 
-function WebRTCAdaptor(initialValues) 
+function WebRTCAdaptor(initialValues)
 {
 	var thiz = this;
 	thiz.peerconnection_config = null;
@@ -37,7 +37,7 @@ function WebRTCAdaptor(initialValues)
 
 	if (!this.isPlayMode)  // if it is in play mode, do not get user media
 	{
-		if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != "false") 
+		if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != false)
 		{
 			//var media_video_constraint = { video: thiz.mediaConstraints.video };
 			navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
@@ -50,7 +50,7 @@ function WebRTCAdaptor(initialValues)
 				}
 
 				//now get only audio to add this stream
-				if (typeof thiz.mediaConstraints.audio != "undefined" && thiz.mediaConstraints.audio != "false") {
+				if (typeof thiz.mediaConstraints.audio != "undefined" && thiz.mediaConstraints.audio != false) {
 					var media_audio_constraint = { audio: thiz.mediaConstraints.audio};
 					navigator.mediaDevices.getUserMedia(media_audio_constraint)
 					.then(function(audioStream) {
@@ -58,20 +58,23 @@ function WebRTCAdaptor(initialValues)
 						thiz.gotStream(stream);
 					})
 					.catch(function(error) {
-						thiz.callbackError(error.name);		
+						thiz.callbackError(error.name, error.message);
 					});
+				}
+				else {
+					thiz.gotStream(stream);
 				}
 			})
 			.catch(function(error) {
-				thiz.callbackError(error.name);		
+				thiz.callbackError(error.name, error.message);
 			});
 		}
 		else {
-			var media_audio_constraint = { video: thiz.mediaConstraints.audio };
+			var media_audio_constraint = { audio: thiz.mediaConstraints.audio };
 			navigator.mediaDevices.getUserMedia(media_audio_constraint)
 			.then(thiz.gotStream)
 			.catch(function(error) {
-				thiz.callbackError(error.name);		
+				thiz.callbackError(error.name, error.message);
 			});
 		}
 	}
@@ -149,12 +152,12 @@ function WebRTCAdaptor(initialValues)
 
 	this.gotStream = function (stream) {
 
+		
 		thiz.localStream = stream;
 		thiz.localVideo.srcObject = stream;
 		if (thiz.webSocketAdaptor == null || thiz.webSocketAdaptor.isConnected() == false) {
 			thiz.webSocketAdaptor = new WebSocketAdaptor();
 		}
-
 	};
 
 	this.onTrack = function(event) {
@@ -172,7 +175,7 @@ function WebRTCAdaptor(initialValues)
 					id : event.candidate.sdpMid,
 					candidate : event.candidate.candidate
 			};
-			
+
 			if (thiz.debug) {
 				console.log("sending ice candiate: " + JSON.stringify(event.candidate));
 			}
@@ -225,7 +228,7 @@ function WebRTCAdaptor(initialValues)
 				sdp : configuration.sdp
 
 		};
-		
+
 		if (thiz.debug) {
 			console.log("local sdp: " );
 			console.log(configuration);
@@ -297,7 +300,7 @@ function WebRTCAdaptor(initialValues)
 					});
 				})
 				.catch(function(error) {
-					thiz.callbackError(error.name);		
+					thiz.callbackError(error.name);
 				});
 			}
 			else {
@@ -372,7 +375,7 @@ function WebRTCAdaptor(initialValues)
 					});
 				})
 				.catch(function(error) {
-					thiz.callbackError(error.name);		
+					thiz.callbackError(error.name);
 				});
 
 			}
@@ -396,13 +399,13 @@ function WebRTCAdaptor(initialValues)
 			if (thiz.debug) {
 				console.log("websocket connected");
 			}
-			
+
 			connected = true;
 			thiz.callback("initialized");
 		}
 
 		this.send = function(text) {
-            
+
 			if (wsConn.readyState == 0 || wsConn.readyState == 2 || wsConn.readyState == 3) {
 				thiz.callbackError("WebSocketNotConnected");
 				return;
@@ -423,7 +426,7 @@ function WebRTCAdaptor(initialValues)
 				if (thiz.debug) {
 					console.log("received start command");
 				}
-				
+
 
 				thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
 				.then(thiz.gotDescription)
@@ -458,7 +461,7 @@ function WebRTCAdaptor(initialValues)
 					console.log("received remote description type:" );
 					console.log(obj);
 				}
-				
+
 				if (obj.type == "offer") {
 					thiz.remotePeerConnection.createAnswer(thiz.sdp_constraints)
 					.then(thiz.gotDescription)
@@ -492,4 +495,3 @@ function WebRTCAdaptor(initialValues)
 		}
 	};
 }
-
