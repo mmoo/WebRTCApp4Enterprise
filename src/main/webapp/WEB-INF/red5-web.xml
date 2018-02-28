@@ -84,7 +84,7 @@
 		<!-- The ws scope listeners -->
 		<property name="listeners">
 			<list>
-				<bean id="listener" class="io.antmedia.enterprise.webrtcapp.WebSocketListener">
+				<bean id="listener" class="io.antmedia.enterprise.webrtc.WebSocketListener">
 				</bean>
 			</list>
 		</property>
