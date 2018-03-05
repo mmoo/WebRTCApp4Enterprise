@@ -73,8 +73,8 @@
 		<property name="dataStore" ref="db.datastore" />
 	</bean>
 	
-	<bean id="webrtc.adaptor" class="io.antmedia.webrtc.WebRTCAdaptor">     
-    </bean>
+	<bean id="webrtc.adaptor"  class="io.antmedia.enterprise.webrtc.WebRTCAdaptor"/>
+	<bean id="websocket.listener" class="io.antmedia.enterprise.webrtc.WebSocketListener" />
 
 	<!-- WebSocket scope with our listeners -->
 	<bean id="webSocketScopeDefault" class="org.red5.net.websocket.WebSocketScope"
@@ -84,8 +84,7 @@
 		<!-- The ws scope listeners -->
 		<property name="listeners">
 			<list>
-				<bean id="listener" class="io.antmedia.enterprise.webrtc.WebSocketListener">
-				</bean>
+				 <ref bean="websocket.listener" />
 			</list>
 		</property>
 	</bean>
