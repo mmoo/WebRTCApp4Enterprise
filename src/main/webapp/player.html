@@ -125,12 +125,15 @@ body {
 	var stop_play_button = document.getElementById("stop_play_button");
 
 	var streamNameBox = document.getElementById("streamName");
+	
+	var streamId;
 	function startPlaying() {
+		streamId = streamNameBox.value;
 		webRTCAdaptor.play(streamNameBox.value);
 	}
 
 	function stopPlaying() {
-		webRTCAdaptor.stop();
+		webRTCAdaptor.stop(streamId);
 	}
 
 	var pc_config = null;

@@ -92,17 +92,14 @@
 	<bean id="app.settings" class="io.antmedia.AppSettings" >
 		<property name="mp4MuxingEnabled" value="${settings.mp4MuxingEnabled}" />
 		<property name="addDateTimeToMp4FileName" value="${settings.addDateTimeToMp4FileName}" />
-
-      
-      <property name="encoderSettingsString" value="${settings.encoderSettingsString}" />
-      <property name="hlsMuxingEnabled" value="${settings.hlsMuxingEnabled}" />
-      <property name="hlsListSize" value="${settings.hlsListSize}" />
-      <property name="hlsTime" value="${settings.hlsTime}" />
-      <property name="hlsPlayListType" value="${settings.hlsPlayListType}" />
-      <property name="webRTCEnabled" value="${settings.webRTCEnabled}" />
-      <property name="deleteHLSFilesOnEnded" value="${settings.deleteHLSFilesOnEnded}" />
-      <property name="serverName" value="#{ @'ant.media.server.settings'.serverName }" />
-		
+	    <property name="encoderSettingsString" value="${settings.encoderSettingsString}" />
+	    <property name="hlsMuxingEnabled" value="${settings.hlsMuxingEnabled}" />
+	    <property name="hlsListSize" value="${settings.hlsListSize}" />
+	    <property name="hlsTime" value="${settings.hlsTime}" />
+	    <property name="hlsPlayListType" value="${settings.hlsPlayListType}" />
+	    <property name="webRTCEnabled" value="${settings.webRTCEnabled}" />
+	    <property name="deleteHLSFilesOnEnded" value="${settings.deleteHLSFilesOnEnded}" />
+	    <property name="serverName" value="#{ @'ant.media.server.settings'.serverName }" />
 	</bean>
 
 </beans>

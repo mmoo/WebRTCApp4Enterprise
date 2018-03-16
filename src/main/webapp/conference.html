@@ -16,7 +16,9 @@ pageEncoding="UTF-8"%>
 <style>
 video {
 	width: 100%;
-	max-width: 640px;
+	max-width: 320px;
+	height: 100%;
+	max-height:240px;
 }
 /* Space out content a bit */
 body {
@@ -52,7 +54,9 @@ body {
 /* Customize container */
 @media ( min-width : 768px) {
 	.container {
-		max-width: 730px;
+		/*max-width: 730px;
+		*/
+		width: 100%;
 	}
 }
 
@@ -93,28 +97,50 @@ body {
 					<li><a href="http://antmedia.io">Contact</a></li>
 				</ul>
 			</nav>
-			<h3 class="text-muted">WebRTC Publish</h3>
+			<h3 class="text-muted">WebRTC Conference</h3>
 		</div>
 
 		<div class="jumbotron">
 
-			<p>
+			<div class="row">
+				<div class="col-sm-6">
 				<video id="localVideo" autoplay muted></video>
-			</p>
+				</div>
+				<div class="col-sm-6">
+				<video id="remoteVideo0" autoplay></video>
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col-sm-6">
+				<video id="remoteVideo1" autoplay ></video>
+				</div>
+				<div class="col-sm-6">
+				<video id="remoteVideo2" autoplay></video>
+				</div>
+			</div>
 
-			<p>
-				<input type="text" class="form-control" value="stream1"
-					id="streamName" placeholder="Type stream name">
-			</p>
-			<p>
-				<button onclick="startPublishing()" class="btn btn-info" disabled
-					id="start_publish_button">Start Publishing</button>
-				<button onclick="stopPublishing()" class="btn btn-info" disabled
-					id="stop_publish_button">Stop Publishing</button>
-			</p>
 
-						<span class="label label-success" id="broadcastingInfo" style="font-size:14px;display:none"
-							style="display: none">Publishing</span>
+
+			<div class="row">
+				<div class="col-sm-6 col-sm-offset-3">
+					<p>
+						<input type="text" class="form-control" value="room1"
+							id="roomName" placeholder="Type room name">
+					</p>
+					<p>
+						<button onclick="joinRoom()" class="btn btn-info" disabled
+							id="join_publish_button">Join Room</button>
+						<button onclick="leaveRoom()" class="btn btn-info" disabled
+							id="stop_publish_button">Leave Room</button>
+					</p>
+				
+			
+					<span class="label label-success" id="broadcastingInfo" style="font-size:14px;display:none"
+						style="display: none">Publishing</span>
+				</div>	
+			</div>
+
 
 		</div>
 		<footer class="footer">
@@ -124,29 +150,46 @@ body {
 	</div>
 </body>
 <script>
-	var start_publish_button = document.getElementById("start_publish_button");
+	var join_publish_button = document.getElementById("join_publish_button");
 	var stop_publish_button = document.getElementById("stop_publish_button");
 
-	var streamNameBox = document.getElementById("streamName");
+	var roomNameBox = document.getElementById("roomName");
 	
-	var streamId;
+	var remoteVideos = new Array();
+	
+	var remoteVideoIndex = 0;
 
-	function startPublishing() {
-		streamId = streamNameBox.value;
-		webRTCAdaptor.publish(streamId);
+	var publishStreamId;
+	function joinRoom() {
+		webRTCAdaptor.joinRoom(roomNameBox.value);
 	}
 
-	function stopPublishing() {
-		webRTCAdaptor.stop(streamId);
+	function leaveRoom() {
+		webRTCAdaptor.stop(publishStreamId);
+		
+		for(var key in remoteVideos) {
+			console.log("index: " + key);
+			remoteVideos[key].srcObject = null;
+			remoteVideos[key] = null;
+			delete remoteVideos[key];
+			webRTCAdaptor.stop(key);
+		}
+		
+		remoteVideoIndex = 0;
+	}
+	
+	function publish(streamName) {
+		publishStreamId = streamName;
+		webRTCAdaptor.publish(streamName);
 	}
 	
     function startAnimation() {
 
         $("#broadcastingInfo").fadeIn(800, function () {
           $("#broadcastingInfo").fadeOut(800, function () {
-        	var state = webRTCAdaptor.signallingState(streamId);
+        	var state = webRTCAdaptor.signallingState(publishStreamId);
             if (state != null && state != "closed") {
-            	var iceState = webRTCAdaptor.iceConnectionState(streamId);
+            	var iceState = webRTCAdaptor.iceConnectionState(publishStreamId);
             	if (iceState != null && iceState != "failed" && iceState != "disconnected") {
               		startAnimation();
             	}
@@ -183,27 +226,72 @@ body {
 		sdp_constraints : sdpConstraints,
 		localVideoId : "localVideo",
 		debug:true,
-		callback : function(info, description) {
+		callback : function(info, obj) 
+		{
 			if (info == "initialized") {
 				console.log("initialized");
-				start_publish_button.disabled = false;
+				join_publish_button.disabled = false;
 				stop_publish_button.disabled = true;
-			} else if (info == "publish_started") {
+			}
+			else if (info == "joinedTheRoom") 
+			{
+				console.log("joined the room ");
+				console.log(obj)
+				publish(obj.streamId);
+				var streams = obj.streams;
+
+				if (obj.streams != null) {
+					obj.streams.forEach(function(item) {
+				    		console.log(item);
+				    		webRTCAdaptor.play(item);
+					});
+				}
+			}
+			else if (info == "streamJoined") 
+			{
+				console.log("stream joined with id " + obj.streamId);
+				webRTCAdaptor.play(obj.streamId);
+			}
+			else if (info == "newStreamAvailable") 
+			{	
+				console.log("new stream available with id: " +  obj.streamId);
+				
+				if (remoteVideos[obj.streamId] == null) {
+					console.log("getting video object from DOM with index: " + remoteVideoIndex);
+					remoteVideos[obj.streamId] = document.getElementById("remoteVideo" + remoteVideoIndex);
+					remoteVideoIndex++;
+				}
+				
+				remoteVideos[obj.streamId].srcObject = obj.track;
+				
+			}
+			else if (info == "streamLeaved") 
+			{
+				console.log(" stream leaved with id " + obj.streamId);
+				if (remoteVideos[obj.streamId] != null) {
+					remoteVideos[obj.streamId].srcObject = null;
+					remoteVideos[obj.streamId] = null;
+					remoteVideoIndex--;
+				}
+				
+				
+			}
+			else if (info == "publish_started") {
 				//stream is being published
 				console.log("publish started");
-				start_publish_button.disabled = true;
+				join_publish_button.disabled = true;
 				stop_publish_button.disabled = false;
 				startAnimation();
 			} else if (info == "publish_finished") {
 				//stream is being finished
 				console.log("publish finished");
-				start_publish_button.disabled = false;
+				join_publish_button.disabled = false;
 				stop_publish_button.disabled = true;
 			}
 			else if (info == "closed") {
 				//console.log("Connection closed");
-				if (typeof description != "undefined") {
-					console.log("Connecton closed: " + JSON.stringify(description));
+				if (typeof obj != "undefined") {
+					console.log("Connecton closed: " + JSON.stringify(obj));
 				}
 			}
 		},
