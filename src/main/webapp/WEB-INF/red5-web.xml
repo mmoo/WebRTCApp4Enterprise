@@ -42,7 +42,7 @@
 	<!-- Defines the web handler which acts as an applications endpoint -->
 	<bean id="web.handler" class="io.antmedia.enterprise.webrtcapp.WebRTCApplication">
 
-		<property name="videoServiceEndpoints">
+<!-- 	<property name="videoServiceEndpoints">
 			<list>
 			 
 				<bean id="facebook.endpoint"
@@ -69,7 +69,7 @@
 				</bean>
 			</list>
 		</property>
-
+-->
 		<property name="dataStore" ref="db.datastore" />
 	</bean>
 	
@@ -100,6 +100,16 @@
 	    <property name="webRTCEnabled" value="${settings.webRTCEnabled}" />
 	    <property name="deleteHLSFilesOnEnded" value="${settings.deleteHLSFilesOnEnded}" />
 	    <property name="serverName" value="#{ @'ant.media.server.settings'.serverName }" />
+	    
+	    <property name="facebookClientId" value="${facebook.clientId}" />
+      	<property name="facebookClientSecret" value="${facebook.clientSecret}" />
+      	
+      	<property name="periscopeClientId" value="${periscope.clientId}" />
+      	<property name="periscopeClientSecret" value="${periscope.clientSecret}" />
+      	
+      	<property name="youtubeClientId" value="${youtube.clientId}" />
+      	<property name="youtubeClientSecret" value="${youtube.clientSecret}" />
+      	
 	</bean>
 
 </beans>

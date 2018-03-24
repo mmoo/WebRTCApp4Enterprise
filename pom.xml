@@ -4,7 +4,7 @@
 	<groupId>io.antmedia.webrtc</groupId>
 	<artifactId>WebRTCAppEE</artifactId>
 	<packaging>war</packaging>
-	<version>1.2.6-SNAPSHOT</version>
+	<version>1.2.7-SNAPSHOT</version>
 	<name>WebRTCApp4 Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
