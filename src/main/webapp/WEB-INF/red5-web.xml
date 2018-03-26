@@ -38,13 +38,13 @@
 	<bean id="db.datastore" class="io.antmedia.datastore.db.InMemoryDataStore">
 		<constructor-arg value="${webapp.dbName}" />
 	</bean>
-
+	
 	<!-- Defines the web handler which acts as an applications endpoint -->
 	<bean id="web.handler" class="io.antmedia.enterprise.webrtcapp.WebRTCApplication">
-
-		<property name="videoServiceEndpoints">
+<!-- 
+	<property name="videoServiceEndpoints">
 			<list>
-
+			 
 				<bean id="facebook.endpoint"
 					class="io.antmedia.enterprise.social.endpoint.FacebookEndpoint"
 					init-method="start">
@@ -52,7 +52,7 @@
 					<constructor-arg value="${facebook.clientSecret}" />
 					<constructor-arg ref="preference.store" />
 				</bean>
-
+			 
 				<bean id="periscope.endpoint" class="io.antmedia.social.endpoint.PeriscopeEndpoint"
 					init-method="start">
 					<constructor-arg value="${periscope.clientId}" />
@@ -69,12 +69,13 @@
 				</bean>
 			</list>
 		</property>
+		 -->
 
 		<property name="dataStore" ref="db.datastore" />
 	</bean>
-
-	<bean id="webrtc.adaptor" class="io.antmedia.webrtc.WebRTCAdaptor">
-	</bean>
+	
+	<bean id="webrtc.adaptor"  class="io.antmedia.enterprise.webrtc.WebRTCAdaptor"/>
+	<bean id="websocket.listener" class="io.antmedia.enterprise.webrtc.WebSocketListener" />
 
 	<!-- WebSocket scope with our listeners -->
 	<bean id="webSocketScopeDefault" class="org.red5.net.websocket.WebSocketScope"
@@ -84,34 +85,33 @@
 		<!-- The ws scope listeners -->
 		<property name="listeners">
 			<list>
-				<bean id="listener" class="io.antmedia.enterprise.webrtcapp.WebSocketListener">
-				</bean>
+				 <ref bean="websocket.listener" />
 			</list>
 		</property>
 	</bean>
-
-	<bean id="app.settings" class="io.antmedia.AppSettings">
+	
+	<bean id="app.settings" class="io.antmedia.AppSettings" >
 		<property name="mp4MuxingEnabled" value="${settings.mp4MuxingEnabled}" />
 		<property name="addDateTimeToMp4FileName" value="${settings.addDateTimeToMp4FileName}" />
-
-
-		<property name="encoderSettingsString" value="${settings.encoderSettingsString}" />
-		<property name="hlsMuxingEnabled" value="${settings.hlsMuxingEnabled}" />
-		<property name="hlsListSize" value="${settings.hlsListSize}" />
-		<property name="hlsTime" value="${settings.hlsTime}" />
-		<property name="hlsPlayListType" value="${settings.hlsPlayListType}" />
-		<property name="webRTCEnabled" value="${settings.webRTCEnabled}" />
-		<property name="deleteHLSFilesOnEnded" value="${settings.deleteHLSFilesOnEnded}" />
-		<property name="serverName" value="#{ @'ant.media.server.settings'.serverName }" />
-		<property name="facebookClientId" value="${facebook.clientId}" />
-		<property name="facebookClientSecret" value="${facebook.clientSecret}" />
-
-		<property name="periscopeClientId" value="${periscope.clientId}" />
-		<property name="periscopeClientSecret" value="${periscope.clientSecret}" />
-
-		<property name="youtubeClientId" value="${youtube.clientId}" />
-		<property name="youtubeClientSecret" value="${youtube.clientSecret}" />
-
+	    <property name="encoderSettingsString" value="${settings.encoderSettingsString}" />
+	    <property name="hlsMuxingEnabled" value="${settings.hlsMuxingEnabled}" />
+	    <property name="hlsListSize" value="${settings.hlsListSize}" />
+	    <property name="hlsTime" value="${settings.hlsTime}" />
+	    <property name="hlsPlayListType" value="${settings.hlsPlayListType}" />
+	    <property name="webRTCEnabled" value="${settings.webRTCEnabled}" />
+	    <property name="deleteHLSFilesOnEnded" value="${settings.deleteHLSFilesOnEnded}" />
+	    <property name="serverName" value="#{ @'ant.media.server.settings'.serverName }" />
+	    <property name="acceptOnlyStreamsInDataStore" value="${settings.acceptOnlyStreamsInDataStore}" />
+	    
+	    <property name="facebookClientId" value="${facebook.clientId}" />
+      	<property name="facebookClientSecret" value="${facebook.clientSecret}" />
+      	
+      	<property name="periscopeClientId" value="${periscope.clientId}" />
+      	<property name="periscopeClientSecret" value="${periscope.clientSecret}" />
+      	
+      	<property name="youtubeClientId" value="${youtube.clientId}" />
+      	<property name="youtubeClientSecret" value="${youtube.clientSecret}" />
+      	
 	</bean>
 
 </beans>
