@@ -74,7 +74,7 @@
 		<property name="dataStore" ref="db.datastore" />
 	</bean>
 	
-	<bean id="webrtc.adaptor"  class="io.antmedia.enterprise.webrtc.WebRTCAdaptor"/>
+	<bean id="webrtc.adaptor"  class="io.antmedia.webrtc.WebRTCAdaptor"/>
 	<bean id="websocket.listener" class="io.antmedia.enterprise.webrtc.WebSocketListener" />
 
 	<!-- WebSocket scope with our listeners -->
