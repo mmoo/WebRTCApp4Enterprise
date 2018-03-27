@@ -75,7 +75,7 @@
 	</bean>
 	
 	<bean id="webrtc.adaptor"  class="io.antmedia.webrtc.WebRTCAdaptor"/>
-	<bean id="websocket.listener" class="io.antmedia.enterprise.webrtc.WebSocketListener" />
+	<bean id="websocket.listener" class="io.antmedia.enterprise.webrtcapp.WebSocketListener" />
 
 	<!-- WebSocket scope with our listeners -->
 	<bean id="webSocketScopeDefault" class="org.red5.net.websocket.WebSocketScope"
