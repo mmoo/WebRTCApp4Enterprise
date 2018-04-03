@@ -4,7 +4,7 @@
 	<groupId>io.antmedia.webrtc</groupId>
 	<artifactId>WebRTCAppEE</artifactId>
 	<packaging>war</packaging>
-	<version>1.2.7-SNAPSHOT</version>
+	<version>1.3.0</version>
 	<name>WebRTCApp4 Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
@@ -33,8 +33,8 @@
 		<servlet.version>2.5</servlet.version>
 		<javacpp.ffmpeg.version>3.2.1-1.3</javacpp.ffmpeg.version>
 		<jersey.version>2.26</jersey.version>
-		<ant-media-server.version>1.3.0-SNAPSHOT</ant-media-server.version>
-		<ant-media-server-enterprise.version>1.3.0-SNAPSHOT</ant-media-server-enterprise.version>
+		<ant-media-server.version>1.3.0</ant-media-server.version>
+		<ant-media-server-enterprise.version>1.3.0</ant-media-server-enterprise.version>
 	</properties>
 	<developers>
     		<developer>

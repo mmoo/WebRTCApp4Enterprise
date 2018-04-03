@@ -42,7 +42,7 @@
 	<!-- Defines the web handler which acts as an applications endpoint -->
 	<bean id="web.handler" class="io.antmedia.enterprise.webrtcapp.WebRTCApplication">
 
-<!-- 	<property name="videoServiceEndpoints">
+<!--  <property name="videoServiceEndpoints">
 			<list>
 			 
 				<bean id="facebook.endpoint"
@@ -69,12 +69,13 @@
 				</bean>
 			</list>
 		</property>
--->
+		 -->
+
 		<property name="dataStore" ref="db.datastore" />
 	</bean>
 	
-	<bean id="webrtc.adaptor"  class="io.antmedia.enterprise.webrtc.WebRTCAdaptor"/>
-	<bean id="websocket.listener" class="io.antmedia.enterprise.webrtc.WebSocketListener" />
+    <bean id="webrtc.adaptor"  class="io.antmedia.enterprise.webrtc.WebRTCAdaptor"/>
+    <bean id="websocket.listener" class="io.antmedia.enterprise.webrtc.WebSocketListener" />
 
 	<!-- WebSocket scope with our listeners -->
 	<bean id="webSocketScopeDefault" class="org.red5.net.websocket.WebSocketScope"

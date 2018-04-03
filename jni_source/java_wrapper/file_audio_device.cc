@@ -269,12 +269,14 @@ int32_t VirtualFileAudioDevice::StartRecording() {
 		_recordingBuffer = new int8_t[_recordingBufferSizeIn10MS];
 	}
 
+
+/*
 	_ptrThreadRec.reset(new rtc::PlatformThread(
 			RecThreadFunc, this, "webrtc_audio_module_capture_thread"));
 
 	_ptrThreadRec->Start();
 	_ptrThreadRec->SetPriority(rtc::kRealtimePriority);
-
+*/
 	LOG(LS_INFO) << "Started recording ";
 
 	return 0;
@@ -293,13 +295,13 @@ int32_t VirtualFileAudioDevice::StopRecording() {
 		_ptrThreadRec.reset();
 	}
 
+
 	rtc::CritScope lock(&_critSect);
 	_recordingFramesLeft = 0;
 	if (_recordingBuffer) {
 		delete [] _recordingBuffer;
 		_recordingBuffer = NULL;
 	}
-
 
 	LOG(LS_INFO) << "Stopped recording "
 			<< std::endl;
@@ -653,7 +655,24 @@ bool VirtualFileAudioDevice::WriteAudioFrame(int8_t* data, size_t sample_count) 
 
 void VirtualFileAudioDevice::NewFrameAvailable(int sampleCount) {
 	_critSect.Enter();
+	if (!_recording) {
+		LOG(WARNING) <<  " dropping audio because it is not recording ";
+		_critSect.Leave();
+		return;
+	}
 	this->newFrameSampleCount = sampleCount;
+
+	int frameCount = newFrameSampleCount / _recordingFramesIn10MS;
+
+	for (int i = 0; i < frameCount; i++) {
+		_ptrAudioBuffer->SetRecordedBuffer(_recordingBuffer, _recordingFramesIn10MS);
+		_lastCallRecordMillis = 0; //currentTime;
+			//		newFrameSampleCount -= _recordingFramesIn10MS;
+		_critSect.Leave();
+		_ptrAudioBuffer->DeliverRecordedData();
+		_critSect.Enter();
+	}
+
 	_critSect.Leave();
 }
 
@@ -670,6 +689,7 @@ bool VirtualFileAudioDevice::RecThreadProcess()
 
 
 	if (newFrameSampleCount != 0) {
+
 		//LOG(WARNING) <<  " new frame sample count: " <<newFrameSampleCount << " time is: " << rtc::TimeMillis();
 		//if (_inputFile.is_open())
 		{
@@ -682,19 +702,20 @@ bool VirtualFileAudioDevice::RecThreadProcess()
 			}
 			 */
 
+			/*
 			int frameCount = newFrameSampleCount / _recordingFramesIn10MS;
+
 			for (int i = 0; i < frameCount; i++) {
-				_ptrAudioBuffer->SetRecordedBuffer(_recordingBuffer,
-									_recordingFramesIn10MS);
+				_ptrAudioBuffer->SetRecordedBuffer(_recordingBuffer, _recordingFramesIn10MS);
 				_lastCallRecordMillis = 0; //currentTime;
 				newFrameSampleCount -= _recordingFramesIn10MS;
-
+				_critSect.Leave();
 				_ptrAudioBuffer->DeliverRecordedData();
-
+				_critSect.Enter();
 			}
+			*/
 
 			//LOG(WARNING) << "leaving loop sample count:" << newFrameSampleCount << " recordingFamesIn10Ms " << _recordingFramesIn10MS;
-
 		}
 	}
 

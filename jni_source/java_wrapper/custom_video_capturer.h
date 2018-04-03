@@ -37,6 +37,9 @@ public:
     void writeMockFrame(int width, int height);
 
   //  void writePacket(int8_t* data, int width, int height);
+protected:
+     virtual void OnSinkWantsChanged(const rtc::VideoSinkWants& wants) override;
+
 
 private:
     DISALLOW_COPY_AND_ASSIGN(CustomVideoCapturer);

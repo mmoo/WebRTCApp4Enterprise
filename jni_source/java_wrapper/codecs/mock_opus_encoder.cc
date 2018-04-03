@@ -603,8 +603,6 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 
 	EncodedInfo info;
 
-
-
 	_critSect.Enter();
 	if (encodedPacketQueue.empty()) {
 		//std::cerr << "--- Encoded Audio Packet Queue is Empty -- " << std::endl;

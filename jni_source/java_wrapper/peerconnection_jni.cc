@@ -1444,7 +1444,7 @@ JOW(jlong, PeerConnectionFactory_nativeCreatePeerConnectionFactory)(
 	webrtc::Trace::CreateTrace();
 
 	std::unique_ptr<Thread> network_thread =
-			rtc::Thread::CreateWithSocketServer();
+				rtc::Thread::CreateWithSocketServer();
 	network_thread->SetName("network_thread", nullptr);
 	RTC_CHECK(network_thread->Start()) << "Failed to start thread";
 
@@ -2334,7 +2334,9 @@ JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong
 	antmedia::AudioEncoderFactory* audio_encoder_factory = factory->audio_encoder_factory();
 	MockOpusEncoder* mockOpusEncoder = audio_encoder_factory->getAudioEncoder();
 
-	if (!mockOpusEncoder) {
+	CustomAudioDeviceModule* cadm = (CustomAudioDeviceModule*)factory->audio_device_module();
+
+	if (!mockOpusEncoder || !cadm) {
 		LOG(WARNING) << " Audio Encoder Factory has not created audio encoder";
 		return;
 	}
@@ -2342,12 +2344,11 @@ JOW(void, PeerConnectionFactory_nativeAddAudioPacket)(JNIEnv* jni, jclass, jlong
 	jbyte* data = jni->GetByteArrayElements(j_packet, JNI_FALSE);
 
 	mockOpusEncoder->addEncodedData((uint8_t*)data, j_packet_length, timestamp);
-
 	jni->ReleaseByteArrayElements(j_packet, data, JNI_ABORT);
 
 	//factory->worker_thread()->Invoke<void>(posted_from, functor)
 
-	CustomAudioDeviceModule* cadm = (CustomAudioDeviceModule*)factory->audio_device_module();
+
 	cadm->newFrameAvailable(totalSampleCount);
 
 	/*factory->worker_thread()->Invoke<void>(RTC_FROM_HERE,

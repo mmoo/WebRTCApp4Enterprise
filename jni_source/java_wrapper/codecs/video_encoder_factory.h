@@ -24,7 +24,8 @@ class VideoEncoderFactory : public cricket::WebRtcVideoEncoderFactory {
 	     // TODO(magjed): Move setting these parameters into webrtc::H264Encoder
 	     // instead.
 	     codec.SetParam(cricket::kH264FmtpProfileLevelId,
-	    		 cricket::kH264ProfileLevelConstrainedBaseline);
+	    		// "42C02A");  // this is baseline from profile_level_id_unittest
+	    		cricket::kH264ProfileLevelConstrainedBaseline);
 	     codec.SetParam(cricket::kH264FmtpLevelAsymmetryAllowed, "1");
 	     supported_codecs_.push_back(std::move(codec));
 	     LOG(WARNING) << " OK --------------- H264Encoder::IsSupported()";

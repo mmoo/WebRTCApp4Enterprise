@@ -15,21 +15,32 @@ CustomVideoCapturer::CustomVideoCapturer():vframe(nullptr,webrtc::VideoRotation:
 {
 	std::vector<cricket::VideoFormat> supported;
 	cricket::VideoFormat format;
-	 format.width = 1280;
-	 format.height = 720;
-	 format.fourcc = cricket::FOURCC_I420;
-	 format.interval = cricket::VideoFormat::FpsToInterval(15);
+	format.width = 1280;
+	format.height = 720;
+	format.fourcc = cricket::FOURCC_I420;
+	format.interval = cricket::VideoFormat::FpsToInterval(25);
 	supported.push_back(format);
 
-
-
 	cricket::VideoFormat format2;
-		 format2.width = 640;
-		 format2.height = 480;
-		 format2.fourcc = cricket::FOURCC_I420;
-		 format2.interval = cricket::VideoFormat::FpsToInterval(15);
+	format2.width = 640;
+	format2.height = 480;
+	format2.fourcc = cricket::FOURCC_I420;
+	format2.interval = cricket::VideoFormat::FpsToInterval(25);
+	supported.push_back(format2);
 
-		 supported.push_back(format2);
+	cricket::VideoFormat format3;
+	format3.width = 480;
+	format3.height = 360;
+	format3.fourcc = cricket::FOURCC_I420;
+	format3.interval = cricket::VideoFormat::FpsToInterval(25);
+	supported.push_back(format3);
+
+	cricket::VideoFormat format4;
+	format4.width = 360;
+	format4.height = 240;
+	format4.fourcc = cricket::FOURCC_I420;
+	format4.interval = cricket::VideoFormat::FpsToInterval(25);
+	supported.push_back(format4);
 
 
 	SetSupportedFormats(supported);
@@ -37,6 +48,15 @@ CustomVideoCapturer::CustomVideoCapturer():vframe(nullptr,webrtc::VideoRotation:
 
 CustomVideoCapturer::~CustomVideoCapturer()
 {
+}
+
+
+void CustomVideoCapturer::OnSinkWantsChanged(const rtc::VideoSinkWants& wants) {
+  //RTC_DCHECK(thread_checker_.CalledOnValidThread());
+  LOG(WARNING) << "-------------------------------------";
+  std::cout << "---------------OnSinkWantsChanged----------------------" << std::endl;
+  LOG(WARNING) << "-------------------------------------";
+
 }
 
 cricket::CaptureState CustomVideoCapturer::Start(const cricket::VideoFormat& capture_format)
@@ -47,8 +67,8 @@ cricket::CaptureState CustomVideoCapturer::Start(const cricket::VideoFormat& cap
 		return capture_state();
 	}
 
-    LOG(WARNING) << "capture format: " << capture_format.width <<" height: " << capture_format.height << " frame rate: "
-    		<< capture_format.framerate() << " interval: " << capture_format.interval;
+	LOG(WARNING) << "capture format: " << capture_format.width <<" height: " << capture_format.height << " frame rate: "
+			<< capture_format.framerate() << " interval: " << capture_format.interval;
 	m_startThread = rtc::Thread::Current();
 
 	//pthread_create(&g_pthread, NULL, grabCapture, (void*)this);
