@@ -279,12 +279,6 @@
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.glassfish.tyrus.bundles</groupId>
-			<artifactId>tyrus-standalone-client</artifactId>
-			<version>1.13.1</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 	<description>WebRTCApp for Ant Media Server Enterprise Edition</description>
 	<organization>

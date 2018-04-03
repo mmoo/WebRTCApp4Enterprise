@@ -55,6 +55,11 @@ Current WebRTC checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
   //  AppendVideoCodecs(internal_codecs, &unified_codecs);
     ```
 
+  * Comment out the line in h264_decoder_impl.cc //RTC_DCHECK_EQ(context->pix_fmt, kPixelFormat);
+  Safari sends pixel format in yuvj420p which is compatible with yuv420p but it is not preferred. The comment out above
+  make safari send live streams
+  
+  	
   * Compile the project with
 
   `ninja -C out/Default`
