@@ -70,7 +70,9 @@ function WebRTCAdaptor(initialValues)
 		else {
 			var media_audio_constraint = { audio: thiz.mediaConstraints.audio };
 			navigator.mediaDevices.getUserMedia(media_audio_constraint)
-			.then(thiz.gotStream)
+			.then(function(stream) {
+				thiz.gotStream(stream);
+			})
 			.catch(function(error) {
 				thiz.callbackError(error.name, error.message);
 			});
@@ -88,6 +90,8 @@ function WebRTCAdaptor(initialValues)
 		var jsCmd = {
 				command : "publish",
 				streamId : streamId,
+				video: thiz.mediaConstraints.video,
+				audio: thiz.mediaConstraints.audio,
 		};
 
 
@@ -165,7 +169,11 @@ function WebRTCAdaptor(initialValues)
 	this.onTrack = function(event, streamId) {
 		console.log("onTrack");
 		if (thiz.remoteVideo != null) {
-			thiz.remoteVideo.srcObject = event.streams[0];
+			//thiz.remoteVideo.srcObject = event.streams[0];
+			if (thiz.remoteVideo.srcObject !== event.streams[0]) {
+				thiz.remoteVideo.srcObject = event.streams[0];
+			    console.log('Received remote stream');
+			  }
 		}
 		else {
 			var dataObj = {
@@ -254,7 +262,7 @@ function WebRTCAdaptor(initialValues)
 			{
 				console.log("Set local description successfully for stream Id " + streamId);
 				
-				jsCmd = {
+				var jsCmd = {
 						command : "takeConfiguration",
 						streamId : streamId,
 						type : configuration.type,
@@ -543,7 +551,7 @@ function WebRTCAdaptor(initialValues)
 		}
 
 		wsConn.onmessage = function(event) {
-			obj = JSON.parse(event.data);
+			var obj = JSON.parse(event.data);
 
 			if (obj.command == "start") 
 			{
