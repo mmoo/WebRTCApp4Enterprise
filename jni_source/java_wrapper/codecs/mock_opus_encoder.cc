@@ -581,7 +581,7 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 
 	MaybeUpdateUplinkBandwidth();
 
-	/*
+
 	if (input_buffer_.empty())
 		first_timestamp_in_buffer_ = rtp_timestamp;
 
@@ -591,11 +591,11 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 
 		return EncodedInfo();
 	}
-	*/
 
-/*	RTC_CHECK_EQ(input_buffer_.size(),
+
+	RTC_CHECK_EQ(input_buffer_.size(),
 			Num10msFramesPerPacket() * SamplesPer10msFrame());
-*/
+
 
 //	std::cerr << " opus encoded buffer size before encode -> " <<encoded->size() << std::endl;
 //	const size_t max_encoded_bytes = SufficientOutputBufferSize();
@@ -606,7 +606,7 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	_critSect.Enter();
 	if (encodedPacketQueue.empty()) {
 		//std::cerr << "--- Encoded Audio Packet Queue is Empty -- " << std::endl;
-		first_timestamp_in_buffer_ = 0;
+		//first_timestamp_in_buffer_ = 0;
 		_critSect.Leave();
 		return info;
 	}
@@ -637,11 +637,11 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	encoded->AppendData(packet->packet_data, packet->packet_data_size);
 	info.encoded_bytes = packet->packet_data_size;
 
-
-
 	//packet timestamp is in milliseconds
-	//std::cerr << " audio timestamp " << packet->timestamp;
+
 	uint32_t packetTimeStamp = (SampleRateHz()/1000) * packet->timestamp;
+
+	//std::cerr << " audio packet timestamp: " << packetTimeStamp << " rtp_timestamp: " << rtp_timestamp << "\n";
 
 
 	delete packet;
@@ -652,7 +652,7 @@ AudioEncoder::EncodedInfo MockOpusEncoder::EncodeImpl(
 	// Will use new packet size for next encoding.
 	config_.frame_size_ms = next_frame_length_ms_;
 
-	info.encoded_timestamp = packetTimeStamp; // first_timestamp_in_buffer_;
+	info.encoded_timestamp =  first_timestamp_in_buffer_; // packetTimeStamp; //
 	info.payload_type = config_.payload_type;
 	info.send_even_if_empty = true;  // Allows Opus to send empty packets.
 	info.speech = (info.encoded_bytes > 0);

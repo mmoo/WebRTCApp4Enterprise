@@ -288,8 +288,8 @@ public:
 
 
 		//timestamp is in milliseconds
-		//std::cerr << " video timestamp " << timestamp;
-		encoded_image_.ntp_time_ms_ = timestamp; // clock_->TimeInMilliseconds() + delta_ntp_internal_ms_; // input_frame.ntp_time_ms();
+		//std::cerr << " video ntp_timestamp coming from encoder :  " << timestamp << "\n";
+		encoded_image_.ntp_time_ms_ = clock_->TimeInMilliseconds() + delta_ntp_internal_ms_; // timestamp
 		encoded_image_.capture_time_ms_ = encoded_image_.ntp_time_ms_;
 		encoded_image_._timeStamp = kMsToRtpTimestamp * static_cast<uint32_t>(encoded_image_.ntp_time_ms_); //timestamp
 
@@ -392,6 +392,7 @@ public:
 		encodedPacketQueue.pop();
 		_critSect.Leave();
 
+		//std::cerr << "Encoder frame ntp_time_ms: " << frame.ntp_time_ms();
 		writeConfPacket(packet->extradata, packet->extradata_size, packet->packet_data, packet->packet_data_size, packet->width, packet->height, packet->isKeyFrame, packet->timestamp);
 
 
