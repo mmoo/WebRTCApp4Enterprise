@@ -11,6 +11,7 @@ pageEncoding="UTF-8"%>
 video {
 	width: 100%;
 	max-width: 640px;
+	max-height: 100%;
 }
 </style>
 </head>
@@ -18,39 +19,20 @@ video {
 
 <div id="video_info">Stream will start playing automatically<br/>when it is live</div>
 	
-	<div class="container">
 		
-
-		<div class="jumbotron">
-
-			<p>
-				<video id="remoteVideo" autoplay controls></video>
-			</p>
-			<p>
-				<input type="text" class="form-control" value="stream1"
-					id="streamName" placeholder="Type stream name">
-			</p>
-			<p>
-				<button onclick="startPlaying()" class="btn btn-info"
-					id="start_play_button">Start Playing</button>
-				<button onclick="stopPlaying()" class="btn btn-info"
-					id="stop_play_button">Stop Playing</button>
-
-			</p>
-		</div>
-		<footer class="footer">
-			<p>
-				<a href="http://antmedia.io">© 2018 Ant Media Server Enterprise Edition</a>
-			</p>
-		</footer>
-	</div>
+<video id="remoteVideo" autoplay controls></video>
+		
 
 </body>
 <script>
-	var start_play_button = document.getElementById("start_play_button");
-	var stop_play_button = document.getElementById("stop_play_button");
+	
+    // document.getElementById("video_info").innerHTML="Stream will start playing automatically<br/>when it is live";
 
-	var streamNameBox = document.getElementById("streamName");
+    var streamId = "<%= request.getParameter("name") %>";
+
+    if (streamId == "null") {
+    		alert("No stream specified. Please add ?name={STREAM_ID}  to the url");
+    }
 	function startPlaying() {
 		webRTCAdaptor.play(streamNameBox.value);
 	}
@@ -88,19 +70,15 @@ video {
 		callback : function(info, description) {
 			if (info == "initialized") {
 				console.log("initialized");
-				start_play_button.disabled = false;
-				stop_play_button.disabled = true;
+				webRTCAdaptor.getStreamInfo(streamId);
+				
 			} else if (info == "play_started") {
 				//joined the stream
 				console.log("play started");
-				start_play_button.disabled = true;
-				stop_play_button.disabled = false;
-			
+				document.getElementById("video_info").style.display = "none";
 			} else if (info == "play_finished") {
 				//leaved the stream
 				console.log("play finished");
-				start_play_button.disabled = false;
-				stop_play_button.disabled = true;
 			}
 			else if (info == "closed") {
 				//console.log("Connection closed");
@@ -108,14 +86,26 @@ video {
 					console.log("Connecton closed: " + JSON.stringify(description));
 				}
 			}
+			else if (info == "streamInformation") {
+				console.log("stream information");
+				webRTCAdaptor.play(streamId);
+			}
 		},
 		callbackError : function(error) {
 			//some of the possible errors, NotFoundError, SecurityError,PermissionDeniedError
 
 			console.log("error callback: " + JSON.stringify(error));
-			alert(JSON.stringify(error));
+			
+			if (error == "no_stream_exist") {
+				setTimeout(function(){
+					webRTCAdaptor.getStreamInfo(streamId);
+				}, 3000);
+			}
+			//alert(JSON.stringify(error));
 		}
 	});
+	
+	
 
 </script>
 </html>

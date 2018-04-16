@@ -284,12 +284,16 @@ int32_t VirtualFileAudioDevice::StartRecording() {
 
 
 int32_t VirtualFileAudioDevice::StopRecording() {
+	uint64_t now = rtc::TimeMillis();
 	{
 		LOG(WARNING) << __FUNCTION__;
 		rtc::CritScope lock(&_critSect);
 		_recording = false;
 	}
 
+	LOG(LS_INFO) << "stop recording 1. interval " << rtc::TimeMillis() - now ;
+
+	 now = rtc::TimeMillis();
 	if (_ptrThreadRec) {
 		_ptrThreadRec->Stop();
 		_ptrThreadRec.reset();
@@ -302,6 +306,7 @@ int32_t VirtualFileAudioDevice::StopRecording() {
 		delete [] _recordingBuffer;
 		_recordingBuffer = NULL;
 	}
+	LOG(LS_INFO) << "stop recording 2. interval " << rtc::TimeMillis() - now ;
 
 	LOG(LS_INFO) << "Stopped recording "
 			<< std::endl;
@@ -671,6 +676,12 @@ void VirtualFileAudioDevice::NewFrameAvailable(int sampleCount) {
 		_critSect.Leave();
 		_ptrAudioBuffer->DeliverRecordedData();
 		_critSect.Enter();
+		//check recording state again because
+		// recording can be set to false in the interval between mutex is released and lock above
+		if (!_recording) {
+			LOG(WARNING) <<  " breaking audio loop because it is not recording ";
+			break;
+		}
 	}
 
 	_critSect.Leave();

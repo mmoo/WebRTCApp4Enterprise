@@ -132,8 +132,6 @@ function WebRTCAdaptor(initialValues)
 		};
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
-
-
 	}
 
 	this.join = function(streamId) {
@@ -156,6 +154,14 @@ function WebRTCAdaptor(initialValues)
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 		thiz.closePeerConnection(streamId);
 	}
+	
+	this.getStreamInfo = function(streamId) {
+		var jsCmd = {
+				command : "getStreamInfo",
+				streamId: streamId,
+		};
+		this.webSocketAdaptor.send(JSON.stringify(jsCmd));
+	}
 
 	this.gotStream = function (stream) 
 	{	
@@ -165,6 +171,7 @@ function WebRTCAdaptor(initialValues)
 			thiz.webSocketAdaptor = new WebSocketAdaptor();
 		}
 	};
+	
 
 	this.onTrack = function(event, streamId) {
 		console.log("onTrack");
@@ -587,6 +594,9 @@ function WebRTCAdaptor(initialValues)
 			}
 			else if (obj.command == "notification") {
 				thiz.callback(obj.definition, obj);
+			}
+			else if (obj.command == "streamInformation") {
+				thiz.callback(obj.command, obj);
 			}
 
 		}
