@@ -13,7 +13,7 @@ function WebRTCAdaptor(initialValues)
 	thiz.videoTrackSender = null;
 	thiz.audioTrackSender = null;
 	thiz.playStreamId = new Array();
-	
+
 
 	thiz.isPlayMode = false;
 	thiz.debug = false;
@@ -37,35 +37,47 @@ function WebRTCAdaptor(initialValues)
 	{
 		if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != false)
 		{
-			//var media_video_constraint = { video: thiz.mediaConstraints.video };
-			navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
-			.then(function(stream){
 
-				//this trick, getting audio and video separately, make us add or remove tracks on the fly
-				var audioTrack = stream.getAudioTracks();
-				if (audioTrack.length > 0) {
-					stream.removeTrack(audioTrack[0]);
-				}
-
-				//now get only audio to add this stream
-				if (typeof thiz.mediaConstraints.audio != "undefined" && thiz.mediaConstraints.audio != false) {
-					var media_audio_constraint = { audio: thiz.mediaConstraints.audio};
-					navigator.mediaDevices.getUserMedia(media_audio_constraint)
-					.then(function(audioStream) {
-						stream.addTrack(audioStream.getAudioTracks()[0]);
-						thiz.gotStream(stream);
-					})
-					.catch(function(error) {
-						thiz.callbackError(error.name, error.message);
-					});
-				}
-				else {
+			if (thiz.mediaConstraints.audio.mandatory) 
+			{
+				navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
+				.then(function(stream) {
 					thiz.gotStream(stream);
-				}
-			})
-			.catch(function(error) {
-				thiz.callbackError(error.name, error.message);
-			});
+				}).catch(function (error) {
+					thiz.callbackError(error.name, error.message);
+				});;
+			}
+			else {
+				//var media_video_constraint = { video: thiz.mediaConstraints.video };
+				navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
+				.then(function(stream){
+
+					//this trick, getting audio and video separately, make us add or remove tracks on the fly
+					var audioTrack = stream.getAudioTracks();
+					if (audioTrack.length > 0) {
+						stream.removeTrack(audioTrack[0]);
+					}
+
+					//now get only audio to add this stream
+					if (typeof thiz.mediaConstraints.audio != "undefined" && thiz.mediaConstraints.audio != false) {
+						var media_audio_constraint = { audio: thiz.mediaConstraints.audio};
+						navigator.mediaDevices.getUserMedia(media_audio_constraint)
+						.then(function(audioStream) {
+							stream.addTrack(audioStream.getAudioTracks()[0]);
+							thiz.gotStream(stream);
+						})
+						.catch(function(error) {
+							thiz.callbackError(error.name, error.message);
+						});
+					}
+					else {
+						thiz.gotStream(stream);
+					}
+				})
+				.catch(function(error) {
+					thiz.callbackError(error.name, error.message);
+				});
+			}
 		}
 		else {
 			var media_audio_constraint = { audio: thiz.mediaConstraints.audio };
@@ -86,38 +98,38 @@ function WebRTCAdaptor(initialValues)
 
 
 	this.publish = function (streamId) {
-	
+
 		var jsCmd = {
 				command : "publish",
 				streamId : streamId,
-				video: thiz.mediaConstraints.video,
-				audio: thiz.mediaConstraints.audio,
+				video: thiz.mediaConstraints.video == false ? false : true,
+						audio: thiz.mediaConstraints.audio == false ? false : true,
 		};
 
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}
-	
-	
+
+
 	this.joinRoom = function (roomName) {
 		thiz.roomName = roomName;
-		
+
 		var jsCmd = {
 				command : "joinRoom",
 				room: roomName,
 		}
-		
+
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
-		
+
 	}
 
 	this.play = function (streamId) {
-		
+
 		thiz.playStreamId.push(streamId);
 		var jsCmd =
 		{
-			command : "play",
-			streamId : streamId,
+				command : "play",
+				streamId : streamId,
 		}
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
@@ -145,16 +157,16 @@ function WebRTCAdaptor(initialValues)
 	}
 
 	this.leave = function (streamId) {
-		
+
 		var jsCmd = {
-					command : "leave",
-					streamId: streamId,
+				command : "leave",
+				streamId: streamId,
 		};
-		
+
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 		thiz.closePeerConnection(streamId);
 	}
-	
+
 	this.getStreamInfo = function(streamId) {
 		var jsCmd = {
 				command : "getStreamInfo",
@@ -171,7 +183,7 @@ function WebRTCAdaptor(initialValues)
 			thiz.webSocketAdaptor = new WebSocketAdaptor();
 		}
 	};
-	
+
 
 	this.onTrack = function(event, streamId) {
 		console.log("onTrack");
@@ -179,8 +191,8 @@ function WebRTCAdaptor(initialValues)
 			//thiz.remoteVideo.srcObject = event.streams[0];
 			if (thiz.remoteVideo.srcObject !== event.streams[0]) {
 				thiz.remoteVideo.srcObject = event.streams[0];
-			    console.log('Received remote stream');
-			  }
+				console.log('Received remote stream');
+			}
 		}
 		else {
 			var dataObj = {
@@ -189,7 +201,7 @@ function WebRTCAdaptor(initialValues)
 			}
 			thiz.callback("newStreamAvailable", dataObj);
 		}
-		
+
 	}
 
 	this.iceCandidateReceived = function(event, streamId) {
@@ -216,7 +228,7 @@ function WebRTCAdaptor(initialValues)
 	this.initPeerConnection = function(streamId) {
 		if (thiz.remotePeerConnection[streamId] == null) 
 		{
-			
+
 			var closedStreamId = streamId;
 			console.log("stream id in init peer connection: " + streamId + " close dstream id: " + closedStreamId);
 			thiz.remotePeerConnection[streamId] = new RTCPeerConnection(thiz.peerconnection_config);
@@ -241,9 +253,9 @@ function WebRTCAdaptor(initialValues)
 			delete thiz.remotePeerConnection[streamId];
 			var playStreamIndex = thiz.playStreamId.indexOf(streamId);
 			if (playStreamIndex != -1) {
-				 thiz.playStreamId.splice(playStreamIndex, 1);
+				thiz.playStreamId.splice(playStreamIndex, 1);
 			}
-			
+
 		}
 	}
 
@@ -264,32 +276,32 @@ function WebRTCAdaptor(initialValues)
 	this.gotDescription = function(configuration, streamId) 
 	{
 		thiz.remotePeerConnection[streamId]
-			.setLocalDescription(configuration)
-			.then(function(responose) 
-			{
-				console.log("Set local description successfully for stream Id " + streamId);
-				
-				var jsCmd = {
-						command : "takeConfiguration",
-						streamId : streamId,
-						type : configuration.type,
-						sdp : configuration.sdp
+		.setLocalDescription(configuration)
+		.then(function(responose) 
+				{
+			console.log("Set local description successfully for stream Id " + streamId);
 
-				};
+			var jsCmd = {
+					command : "takeConfiguration",
+					streamId : streamId,
+					type : configuration.type,
+					sdp : configuration.sdp
 
-				if (thiz.debug) {
-					console.log("local sdp: " );
-					console.log(configuration);
-				}
+			};
 
-				thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
-				
-			})
-			.catch(function(error){
-				console.error("Cannot set local description. Error is: " + error);
-			});
+			if (thiz.debug) {
+				console.log("local sdp: " );
+				console.log(configuration);
+			}
 
-		
+			thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
+
+				})
+				.catch(function(error){
+					console.error("Cannot set local description. Error is: " + error);
+				});
+
+
 	}
 
 
@@ -446,62 +458,62 @@ function WebRTCAdaptor(initialValues)
 			this.callbackError("NoActiveConnection");
 		}
 	}
-	
+
 	this.takeConfiguration = function (idOfStream, configuration, typeOfConfiguration) 
 	{
 		var streamId = idOfStream
 		var type = typeOfConfiguration;
 		var conf = configuration;
-		
+
 		thiz.initPeerConnection(streamId);
-		
+
 		thiz.remotePeerConnection[streamId].setRemoteDescription(new RTCSessionDescription({
 			sdp : conf,
 			type : type
 		})).then(function(response)  {
-			
+
 			if (thiz.debug) {
 				console.log("set remote description is succesfull with response: " + response + " for stream : " 
 						+ streamId + " and type: " + type);
 			}
-			
+
 			if (type == "offer") {
 				//SDP constraints may be different in play mode
 				console.log("try to create answer for stream id: " + streamId);
-				
+
 				thiz.remotePeerConnection[streamId].createAnswer(thiz.sdp_constraints)
-					.then(function(configuration) 
-					{
-						console.log("created answer for stream id: " + streamId);
-						thiz.gotDescription(configuration, streamId);
-					})
-					.catch(function(error) 
-					{
-						console.error("create answer error :" + error);
-					});
+				.then(function(configuration) 
+						{
+					console.log("created answer for stream id: " + streamId);
+					thiz.gotDescription(configuration, streamId);
+						})
+						.catch(function(error) 
+								{
+							console.error("create answer error :" + error);
+								});
 			}
-				
+
 		}).catch(function(error){
 			if (thiz.debug) {
 				console.error("set remote description is failed with error: " + error);
 			}
 		});
-		
+
 	}
-	
-	
+
+
 	this.takeCandidate = function(idOfTheStream, tmpLabel, tmpCandidate) {
 		var streamId = idOfTheStream;
 		var label = tmpLabel;
 		var candidateSdp = tmpCandidate;
-			
+
 		var candidate = new RTCIceCandidate({
 			sdpMLineIndex : label,
 			candidate : candidateSdp
 		});
-		
+
 		thiz.initPeerConnection(streamId);
-		
+
 		thiz.remotePeerConnection[streamId].addIceCandidate(candidate)
 		.then(function(response) {
 			if (thiz.debug) {
@@ -511,20 +523,20 @@ function WebRTCAdaptor(initialValues)
 		.catch(function (error) {
 			console.error("ice candiate cannot be added for stream id: " + streamId + " error is: " + error);
 		});
-		
+
 	}
-	
+
 	this.startPublishing = function(idOfStream) {
 		var streamId = idOfStream;
-		
+
 		thiz.initPeerConnection(streamId);
-		
+
 		thiz.remotePeerConnection[streamId].createOffer(thiz.sdp_constraints)
 		.then(function(configuration) {
 			thiz.gotDescription(configuration, streamId);
 		})
 		.catch(function (error) {
-	
+
 			console.error("create offer error for stream id: " + streamId + " error: " + error);
 		});
 	}
@@ -563,7 +575,7 @@ function WebRTCAdaptor(initialValues)
 			if (obj.command == "start") 
 			{
 				//this command is received first, when publishing so playmode is false
-			
+
 				if (thiz.debug) {
 					console.log("received start command");
 				}
@@ -571,11 +583,11 @@ function WebRTCAdaptor(initialValues)
 				thiz.startPublishing(obj.streamId);
 			}
 			else if (obj.command == "takeCandidate") {
-				
+
 				if (thiz.debug) {
 					console.log("received ice candidate for stream id " + obj.streamId);
 				}
-				
+
 				thiz.takeCandidate(obj.streamId, obj.label, obj.candidate);
 
 			} else if (obj.command == "takeConfiguration") {
@@ -584,7 +596,7 @@ function WebRTCAdaptor(initialValues)
 					console.log("received remote description type for stream id: " + obj.streamId + " type: " + obj.type );
 				}
 				thiz.takeConfiguration(obj.streamId, obj.sdp, obj.type);
-				
+
 			}
 			else if (obj.command == "stop") {
 				thiz.closePeerConnection(obj.streamId);
