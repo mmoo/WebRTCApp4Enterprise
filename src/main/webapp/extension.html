@@ -112,6 +112,8 @@ body {
 				<button onclick="stopPublishing()" class="btn btn-info" disabled
 					id="stop_publish_button">Stop Publishing</button>
 			</p>
+			 <p id="micControllerBlock" style="display:none"><button id="micSoundController" onclick="toggleMicSound()" class="btn btn-info">Mute/Unmute Mic</button>
+            <label id="statusOfMicSound">unmuted </label></p>
 
 						<span class="label label-success" id="broadcastingInfo" style="font-size:14px;display:none"
 							style="display: none">Publishing</span>
@@ -131,6 +133,7 @@ body {
 	
     var streamId;
     var webRTCAdaptor;
+    var micMuted = false;
 
 	function startPublishing() {
 		streamId = streamNameBox.value;
@@ -145,7 +148,7 @@ body {
 
         $("#broadcastingInfo").fadeIn(800, function () {
           $("#broadcastingInfo").fadeOut(800, function () {
-        	var state = webRTCAdaptor.signallingState(streamId);
+       	 	var state = webRTCAdaptor.signallingState(streamId);
             if (state != null && state != "closed") {
             	var iceState = webRTCAdaptor.iceConnectionState(streamId);
             	if (iceState != null && iceState != "failed" && iceState != "disconnected") {
@@ -156,6 +159,24 @@ body {
         });
 
       }
+    
+    function toggleMicSound() {
+		if (webRTCAdaptor != null) {
+			if (micMuted == true) {
+				micMuted = false;
+			}
+			else {
+				micMuted = true;
+			}
+            webRTCAdaptor.enableMicInMixedAudio(!micMuted);
+            var micStatusText = "unmuted";
+            if (micMuted) {
+                micStatusText = "muted";
+            }
+           
+            $("#statusOfMicSound").html(micStatusText);
+		}
+}
 
 	var pc_config = null;
 

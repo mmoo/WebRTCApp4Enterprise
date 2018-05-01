@@ -13,7 +13,7 @@ function WebRTCAdaptor(initialValues)
 	thiz.videoTrackSender = null;
 	thiz.audioTrackSender = null;
 	thiz.playStreamId = new Array();
-
+	thiz.micGainNode = null;
 
 	thiz.isPlayMode = false;
 	thiz.debug = false;
@@ -40,12 +40,44 @@ function WebRTCAdaptor(initialValues)
 
 			if (thiz.mediaConstraints.audio.mandatory) 
 			{
-				navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
-				.then(function(stream) {
-					thiz.gotStream(stream);
-				}).catch(function (error) {
+				navigator.mediaDevices.getUserMedia({audio:true, video:false}).then(function(micStream){
+					navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
+					.then(function(stream) 
+					{
+						//console.debug("audio stream track count: " + audioStream.getAudioTracks().length);
+
+						var audioContext = new AudioContext();
+						var desktopSoundGainNode = audioContext.createGain();
+						
+						desktopSoundGainNode.gain.value = 1;
+
+						var audioDestionation = audioContext.createMediaStreamDestination();
+						var audioSource = audioContext.createMediaStreamSource(stream);
+
+						audioSource.connect(desktopSoundGainNode);
+
+						thiz.micGainNode = audioContext.createGain();
+						thiz.micGainNode.gain.value = 1;
+						var audioSource2 = audioContext.createMediaStreamSource(micStream);
+						audioSource2.connect(thiz.micGainNode);
+
+						desktopSoundGainNode.connect(audioDestionation);
+						thiz.micGainNode.connect(audioDestionation);
+
+						stream.removeTrack(stream.getAudioTracks()[0]);
+						audioDestionation.stream.getAudioTracks().forEach(function(track) {
+							stream.addTrack(track);
+						});
+						
+						console.debug("Running gotStream");
+						thiz.gotStream(stream);
+						
+					}).catch(function (error) {
+						thiz.callbackError(error.name, error.message);
+					});;
+				}).catch(function(error){
 					thiz.callbackError(error.name, error.message);
-				});;
+				});	
 			}
 			else {
 				//var media_video_constraint = { video: thiz.mediaConstraints.video };
@@ -95,8 +127,18 @@ function WebRTCAdaptor(initialValues)
 			thiz.webSocketAdaptor = new WebSocketAdaptor();
 		}
 	}
-
-
+	
+	this.enableMicInMixedAudio = function(enable) {
+		if (thiz.micGainNode != null) {
+			if (enable) {
+				thiz.micGainNode.gain.value = 1;
+			}
+			else {
+				thiz.micGainNode.gain.value = 0;
+			}
+		}
+	}
+	
 	this.publish = function (streamId) {
 
 		var jsCmd = {
