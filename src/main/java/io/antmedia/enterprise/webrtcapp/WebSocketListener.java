@@ -298,23 +298,12 @@ public class WebSocketListener extends WebSocketDataListener implements Applicat
 
 
 	private WebRTCEncoderAdaptor getNewWebRTCEncoderAdaptor() {
-		WebRTCEncoderAdaptor encoderAdaptor = new WebRTCEncoderAdaptor(null, appSettings.getAdaptiveResolutionList());
+		WebRTCEncoderAdaptor encoderAdaptor = new WebRTCEncoderAdaptor(null);
 		StorageClient storageClient = null; 
 		if (applicationContext.containsBean("app.storageClient")) {
 			storageClient = (StorageClient) applicationContext.getBean("app.storageClient");
 		}
-
 		encoderAdaptor.setStorageClient(storageClient);
-
-		encoderAdaptor.setMp4MuxingEnabled(appSettings.isMp4MuxingEnabled(), appSettings.isAddDateTimeToMp4FileName());
-		encoderAdaptor.setHLSMuxingEnabled(appSettings.isHlsMuxingEnabled());
-		encoderAdaptor.setWebRTCEnabled(appSettings.isWebRTCEnabled());
-		encoderAdaptor.setHLSFilesDeleteOnExit(appSettings.isDeleteHLSFilesOnExit());
-
-		encoderAdaptor.setHlsTime(appSettings.getHlsTime());
-		encoderAdaptor.setHlsListSize(appSettings.getHlsListSize());
-		encoderAdaptor.setHlsPlayListType(appSettings.getHlsPlayListType());
-
 		return encoderAdaptor;
 	}
 
