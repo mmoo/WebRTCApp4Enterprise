@@ -659,6 +659,13 @@ bool VirtualFileAudioDevice::WriteAudioFrame(int8_t* data, size_t sample_count) 
 }
 
 void VirtualFileAudioDevice::NewFrameAvailable(int sampleCount) {
+
+	if (!_recordingBuffer) {
+		LOG(WARNING) << "Recording buffer is not ready returning";
+
+		return;
+	}
+
 	_critSect.Enter();
 	if (!_recording) {
 		LOG(WARNING) <<  " dropping audio because it is not recording ";

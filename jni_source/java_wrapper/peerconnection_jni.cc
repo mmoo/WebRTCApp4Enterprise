@@ -1518,12 +1518,14 @@ JOW(void, PeerConnectionFactory_nativeFreeFactory)(JNIEnv*, jclass, jlong j_p) {
 	delete reinterpret_cast<OwnedFactoryAndThreads*>(j_p);
 
 
+
 	if (field_trials_init_string) {
 		webrtc::field_trial::InitFieldTrialsFromString(NULL);
 		delete field_trials_init_string;
 		field_trials_init_string = NULL;
 	}
 	webrtc::Trace::ReturnTrace();
+
 
 }
 
