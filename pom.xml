@@ -137,10 +137,22 @@
 			<version>${websocket.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		 <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-websocket</artifactId>
+            <version>${tomcat.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>io.antmedia</groupId>
 			<artifactId>ant-media-server</artifactId>
 			<version>${ant-media-server.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-catalina-ha</artifactId>
+			<version>${tomcat.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
