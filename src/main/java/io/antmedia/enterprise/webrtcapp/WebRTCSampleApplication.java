@@ -1,24 +1,23 @@
 package io.antmedia.enterprise.webrtcapp;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.red5.logging.Red5LoggerFactory;
 import org.red5.net.websocket.WebSocketPlugin;
 import org.red5.net.websocket.WebSocketScope;
 import org.red5.net.websocket.WebSocketScopeManager;
 import org.red5.server.api.scope.IScope;
-import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.plugin.PluginRegistry;
-import org.slf4j.Logger;
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import io.antmedia.enterprise.webrtc.WebRTCApplication;
 
 public class WebRTCSampleApplication extends WebRTCApplication implements ApplicationContextAware{
+	
+	static WebRTCSampleApplication application;
+	
+	
+	public static WebRTCSampleApplication getApplication() {
+		return application;
+	}
 	
 	
 	@Override
@@ -29,6 +28,7 @@ public class WebRTCSampleApplication extends WebRTCApplication implements Applic
 	
 	@Override
 	public boolean appStart(IScope app) {
+		application = this;
 		// get the websocket plugin
 		WebSocketPlugin wsPlugin = (WebSocketPlugin) PluginRegistry.getPlugin("WebSocketPlugin");
 		// add this application to it
