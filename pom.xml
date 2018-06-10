@@ -127,11 +127,6 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>com.googlecode.json-simple</groupId>
-			<artifactId>json-simple</artifactId>
-			<version>1.1.1</version>
-		</dependency>
-		<dependency>
 			<groupId>org.red5</groupId>
 			<artifactId>websocket</artifactId>
 			<version>${websocket.version}</version>
@@ -141,6 +136,7 @@
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-websocket</artifactId>
             <version>${tomcat.version}</version>
+            <scope>provided</scope>
         </dependency>
 		<dependency>
 			<groupId>io.antmedia</groupId>
@@ -149,12 +145,7 @@
 			<scope>provided</scope>
 		</dependency>
 		
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-catalina-ha</artifactId>
-			<version>${tomcat.version}</version>
-			<scope>provided</scope>
-		</dependency>
+		
 		<dependency>
 			<groupId>io.antmedia.enterprise</groupId>
 			<artifactId>ant-media-enterprise</artifactId>

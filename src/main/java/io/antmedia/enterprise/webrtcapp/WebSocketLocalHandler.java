@@ -6,6 +6,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import javax.ws.rs.core.Context;
 
+import org.apache.tomcat.websocket.server.DefaultServerEndpointConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 import io.antmedia.enterprise.webrtc.WebSocketHandler;
 
 
-@ServerEndpoint(value="/websocket")
+@ServerEndpoint(value="/websocket", configurator=DefaultServerEndpointConfigurator.class)
 public class WebSocketLocalHandler extends WebSocketHandler {
 	
 	
