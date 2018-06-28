@@ -212,10 +212,10 @@ body {
 		audio : true
 	};
 
-	var websocketURL = "ws://" + location.hostname + ":8081/WebRTCAppEE";
+	var websocketURL = "ws://" + location.hostname + ":5080/WebRTCAppEE/websocket";
 	
 	if (location.protocol.startsWith("https")) {
-		websocketURL = "wss://" + location.hostname + ":8082/WebRTCAppEE";
+		websocketURL = "wss://" + location.hostname + ":5443/WebRTCAppEE/websocket";
 	}
 	
 	
@@ -249,12 +249,12 @@ body {
 			}
 			else if (info == "streamJoined") 
 			{
-				console.log("stream joined with id " + obj.streamId);
+				console.debug("stream joined with id " + obj.streamId);
 				webRTCAdaptor.play(obj.streamId);
 			}
 			else if (info == "newStreamAvailable") 
 			{	
-				console.log("new stream available with id: " +  obj.streamId);
+				console.debug("new stream available with id: " +  obj.streamId);
 				
 				if (remoteVideos[obj.streamId] == null) {
 					console.log("getting video object from DOM with index: " + remoteVideoIndex);
@@ -267,24 +267,24 @@ body {
 			}
 			else if (info == "streamLeaved") 
 			{
-				console.log(" stream leaved with id " + obj.streamId);
+				console.debug(" stream leaved with id " + obj.streamId);
 				if (remoteVideos[obj.streamId] != null) {
 					remoteVideos[obj.streamId].srcObject = null;
 					remoteVideos[obj.streamId] = null;
+					delete remoteVideos[obj.streamId];
 					remoteVideoIndex--;
 				}
-				
 				
 			}
 			else if (info == "publish_started") {
 				//stream is being published
-				console.log("publish started");
+				console.debug("publish started");
 				join_publish_button.disabled = true;
 				stop_publish_button.disabled = false;
 				startAnimation();
 			} else if (info == "publish_finished") {
 				//stream is being finished
-				console.log("publish finished");
+				console.debug("publish finished");
 				join_publish_button.disabled = false;
 				stop_publish_button.disabled = true;
 			}
