@@ -10,11 +10,11 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.antmedia.enterprise.webrtc.WebSocketHandler;
+import io.antmedia.enterprise.webrtc.WebSocketEnterpriseHandler;
 
 public class WebSocketConfig implements ServerApplicationConfig {
 
-	private static Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
+	private static Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 	
 	@Override
 	public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {

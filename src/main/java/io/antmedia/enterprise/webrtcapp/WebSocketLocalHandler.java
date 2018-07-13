@@ -1,23 +1,17 @@
 package io.antmedia.enterprise.webrtcapp;
 
-import javax.websocket.EndpointConfig;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import javax.ws.rs.core.Context;
 
 import org.apache.tomcat.websocket.server.DefaultServerEndpointConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
 
-import io.antmedia.enterprise.webrtc.WebSocketHandler;
+import io.antmedia.enterprise.webrtc.WebSocketEnterpriseHandler;
 
 
 @ServerEndpoint(value="/websocket", configurator=DefaultServerEndpointConfigurator.class)
-public class WebSocketLocalHandler extends WebSocketHandler {
+public class WebSocketLocalHandler extends WebSocketEnterpriseHandler {
 	
 	
 	private ApplicationContext appCtx; 
@@ -31,5 +25,6 @@ public class WebSocketLocalHandler extends WebSocketHandler {
 		}
 		return appCtx;
 	}
+	
 
 }
