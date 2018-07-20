@@ -380,11 +380,14 @@ public:
 		int queueSize = encodedPacketQueue.size();
 		if (queueSize > 5) {
 				std::cerr << " -- Number of video packet in the queue  " << encodedPacketQueue.size() << std::endl;
-				//for (int i = 2; i < queueSize; i++) {
-				//	EncodedPacket* packet = encodedPacketQueue.front();
-				//	encodedPacketQueue.pop();
-				//	delete packet;
-				//}
+				for (int i = 2; i < queueSize; i++) {
+					EncodedPacket* packet = encodedPacketQueue.front();
+					if (packet->isKeyFrame) {
+						continue;
+					}
+					encodedPacketQueue.pop();
+					delete packet;
+				}
 				//std::cerr << " -- dropping packets and new queue size  " << encodedPacketQueue.size() << std::endl;
 			}
 

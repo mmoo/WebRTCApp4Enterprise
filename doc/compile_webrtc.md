@@ -17,6 +17,7 @@ Current WebRTC checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
     # Build arguments go here.
     # See "gn args <out_dir> --list" for available build arguments.
     rtc_use_h264=true
+    is_debuggable=false
     ```
 
 * Change ffmpeg settings

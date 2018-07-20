@@ -563,7 +563,8 @@ function WebRTCAdaptor(initialValues)
 			}
 		})
 		.catch(function (error) {
-			console.error("ice candiate cannot be added for stream id: " + streamId + " error is: " + error);
+			console.error("ice candiate cannot be added for stream id: " + streamId + " error is: " + error  );
+			console.error(candidate);
 		});
 
 	}
@@ -641,6 +642,7 @@ function WebRTCAdaptor(initialValues)
 
 			}
 			else if (obj.command == "stop") {
+				console.debug("Stop command received");
 				thiz.closePeerConnection(obj.streamId);
 			}
 			else if (obj.command == "error") {
