@@ -58,9 +58,6 @@ public:
 	int height;
 	bool isKeyFrame;
 	long timestamp;
-
-
-
 };
 
 
@@ -77,6 +74,8 @@ public:
 	const int kMsToRtpTimestamp = 90;
 	bool configSent = false;
 	//RTPFragmentationHeader frag_header;
+
+	bool dropUntilNextKeyFrame = false;
 
 	std::queue<EncodedPacket*> encodedPacketQueue;
 
@@ -363,6 +362,21 @@ public:
 			const webrtc::CodecSpecificInfo* codec_specific_info,
 			const std::vector<webrtc::FrameType>* frame_types) override {
 
+		if (frame_types != nullptr) {
+
+		    // Skip frame?
+		    if ((*frame_types)[0] == kEmptyFrame) {
+		    	LOG(LS_WARNING) << "Skip frame----- ";
+		      return WEBRTC_VIDEO_CODEC_OK;
+		    }
+
+		    if ((*frame_types)[0] == kVideoFrameKey) {
+		      	LOG(LS_WARNING) << "Force key frame----- ";
+		    }
+
+		  }
+
+
 		if (!encoded_image_callback_) {
 			LOG(LS_WARNING) << "InitEncode() has been called, but a callback function "
 					<< "has not been set with RegisterEncodeCompleteCallback()";
@@ -372,32 +386,46 @@ public:
 
 		_critSect.Enter();
 		if (encodedPacketQueue.empty()) {
-			std::cerr << "--- Encoded Video Packet Queue is Empty -- " << std::endl;
+			LOG(LS_WARNING) << "--- Encoded Video Packet Queue is Empty -- " << std::endl;
 			_critSect.Leave();
 			return WEBRTC_VIDEO_CODEC_ERROR;
 		}
 
 		int queueSize = encodedPacketQueue.size();
 		if (queueSize > 5) {
-				std::cerr << " -- Number of video packet in the queue  " << encodedPacketQueue.size() << std::endl;
+			//drop packet if queue size is exceeding 5 or dropUntilNextKeyFrame is set.
+
+			    LOG(LS_WARNING) << " -- Number of video packet in the queue  " << encodedPacketQueue.size() << std::endl;
 				for (int i = 2; i < queueSize; i++) {
 					EncodedPacket* packet = encodedPacketQueue.front();
 					if (packet->isKeyFrame) {
-						continue;
+						//do not drop key frame
+						break;
 					}
+					//dropping occurs set the the flag
+					dropUntilNextKeyFrame = true;
 					encodedPacketQueue.pop();
 					delete packet;
 				}
 				//std::cerr << " -- dropping packets and new queue size  " << encodedPacketQueue.size() << std::endl;
-			}
+		}
+
 
 		EncodedPacket* packet = encodedPacketQueue.front();
 		encodedPacketQueue.pop();
 		_critSect.Leave();
 
-		//std::cerr << "Encoder frame ntp_time_ms: " << frame.ntp_time_ms();
-		writeConfPacket(packet->extradata, packet->extradata_size, packet->packet_data, packet->packet_data_size, packet->width, packet->height, packet->isKeyFrame, packet->timestamp);
+		if (dropUntilNextKeyFrame)
+		{
+			if (packet->isKeyFrame)
+			{
+				dropUntilNextKeyFrame = false;
+			}
+		}
 
+		if (!dropUntilNextKeyFrame) {
+			writeConfPacket(packet->extradata, packet->extradata_size, packet->packet_data, packet->packet_data_size, packet->width, packet->height, packet->isKeyFrame, packet->timestamp);
+		}
 
 		delete packet;
 
