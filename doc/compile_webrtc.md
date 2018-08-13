@@ -47,7 +47,7 @@ Current WebRTC checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
   ./chromium/scripts/generate_gn.py```
 
 
-  ##### This is a documentation file for FFmpeg in chromium
+##### This is a documentation file for FFmpeg in chromium
   https://docs.google.com/document/d/14bqZ9NISsyEO3948wehhJ7wc9deTIz-yHUhF1MQp7Po/edit
 
   * Edit webrtc/media/engine/webrtcvideoengine2.cc and comment out the line below
@@ -64,3 +64,23 @@ Current WebRTC checkout commit is 62cbb23aeecd48480a7c0aaceb0078453b84ea95
   * Compile the project with
 
   `ninja -C out/Default`
+  
+### Notes
+
+Max default bitrate settings are in 
+webrtc/media/engine/webrtcvideoengine2.ccwebrtc/media/engine/webrtcvideoengine2.cc
+<pre>
+static int GetMaxDefaultVideoBitrateKbps(int width, int height) {
+  if (width * height <= 320 * 240) {
+    return 600;
+  } else if (width * height <= 640 * 480) {
+    return 1700;
+  } else if (width * height <= 960 * 540) {
+    return 2000;
+  } else {
+    return 2500;
+  }
+}
+</pre>
+
+  
