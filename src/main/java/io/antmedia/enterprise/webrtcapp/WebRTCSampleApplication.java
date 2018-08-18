@@ -28,6 +28,9 @@ public class WebRTCSampleApplication extends WebRTCApplication implements Applic
 	
 	@Override
 	public boolean appStart(IScope app) {
+		System.out.println("\n\n\n"+app+"\n\n\n");
+		
+		
 		application = this;
 		// get the websocket plugin
 		WebSocketPlugin wsPlugin = (WebSocketPlugin) PluginRegistry.getPlugin("WebSocketPlugin");
