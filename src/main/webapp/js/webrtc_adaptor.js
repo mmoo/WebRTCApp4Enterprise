@@ -650,6 +650,9 @@ function WebRTCAdaptor(initialValues)
 			}
 			else if (obj.command == "notification") {
 				thiz.callback(obj.definition, obj);
+				if (obj.definition == "play_finished" || obj.definition == "publish_finished") {
+					thiz.closePeerConnection(obj.streamId);
+				}
 			}
 			else if (obj.command == "streamInformation") {
 				thiz.callback(obj.command, obj);
