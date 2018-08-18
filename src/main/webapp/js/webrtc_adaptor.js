@@ -165,13 +165,14 @@ function WebRTCAdaptor(initialValues)
 
 	}
 
-	this.play = function (streamId) {
+	this.play = function (streamId, token) {
 
 		thiz.playStreamId.push(streamId);
 		var jsCmd =
 		{
 				command : "play",
 				streamId : streamId,
+				token : token,
 		}
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));

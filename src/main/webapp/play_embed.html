@@ -33,8 +33,11 @@ video {
     if (streamId == "null") {
     		alert("No stream specified. Please add ?name={STREAM_ID}  to the url");
     }
+    var token = "<%= request.getParameter("token") %>";
+
+    
 	function startPlaying() {
-		webRTCAdaptor.play(streamNameBox.value);
+		webRTCAdaptor.play(streamNameBox.value, token);
 	}
 
 	function stopPlaying() {
@@ -53,10 +56,10 @@ video {
 		audio : false
 	};
 	
-	var websocketURL = "ws://" + location.hostname + ":8081/WebRTCAppEE/websocket";
+	var websocketURL = "ws://" + location.hostname + ":5080/WebRTCAppEE/websocket";
 	
 	if (location.protocol.startsWith("https")) {
-		websocketURL = "wss://" + location.hostname + ":8082/WebRTCAppEE/websocket";
+		websocketURL = "wss://" + location.hostname + ":5443/WebRTCAppEE/websocket";
 	}
 	
 	var webRTCAdaptor = new WebRTCAdaptor({
@@ -88,7 +91,7 @@ video {
 			}
 			else if (info == "streamInformation") {
 				console.log("stream information");
-				webRTCAdaptor.play(streamId);
+				webRTCAdaptor.play(streamId, token);
 			}
 		},
 		callbackError : function(error) {
