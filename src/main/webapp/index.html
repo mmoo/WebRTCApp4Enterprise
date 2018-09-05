@@ -124,6 +124,8 @@ body {
 	</div>
 </body>
 <script>
+	var token = "<%= request.getParameter("token") %>";
+
 	var start_publish_button = document.getElementById("start_publish_button");
 	var stop_publish_button = document.getElementById("stop_publish_button");
 
@@ -133,7 +135,7 @@ body {
 
 	function startPublishing() {
 		streamId = streamNameBox.value;
-		webRTCAdaptor.publish(streamId);
+		webRTCAdaptor.publish(streamId, token);
 	}
 
 	function stopPublishing() {

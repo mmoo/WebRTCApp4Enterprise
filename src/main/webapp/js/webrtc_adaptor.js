@@ -139,11 +139,12 @@ function WebRTCAdaptor(initialValues)
 		}
 	}
 	
-	this.publish = function (streamId) {
+	this.publish = function (streamId, token) {
 
 		var jsCmd = {
 				command : "publish",
 				streamId : streamId,
+				token : token,
 				video: thiz.mediaConstraints.video == false ? false : true,
 						audio: thiz.mediaConstraints.audio == false ? false : true,
 		};
