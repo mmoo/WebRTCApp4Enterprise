@@ -43,7 +43,10 @@
 			<property name="dataStore"  ref="db.datastore"/>
 			<property name="enabled" value="${settings.acceptOnlyStreamsInDataStore}" />
 	</bean>
+		
+	<bean id="hls.viewerstats" class="io.antmedia.statistic.HlsViewerStats" />
 	<bean id="token.service" class="io.antmedia.security.TokenService" />
+
 	<!-- Defines the web handler which acts as an applications endpoint -->
 
 	<bean id="web.handler" class="io.antmedia.enterprise.webrtcapp.WebRTCSampleApplication">
@@ -97,6 +100,7 @@
       	<property name="youtubeClientId" value="${youtube.clientId}" />
       	<property name="youtubeClientSecret" value="${youtube.clientSecret}" />
       	<property name="acceptOnlyStreamsInDataStore" value="${settings.acceptOnlyStreamsInDataStore}" />
+      	<property name="tokenControlEnabled" value="${settings.tokenControlEnabled}" />
       	
 	</bean>
 
