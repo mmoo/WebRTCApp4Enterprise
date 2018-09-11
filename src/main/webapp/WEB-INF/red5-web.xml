@@ -43,11 +43,28 @@
 	</bean>
 
 	<context:component-scan base-package="io.antmedia.rest" />
+
+	<bean id="db.datastore" class="io.antmedia.datastore.db.MapDBStore">
+		<constructor-arg value="${webapp.dbName}" />
+	</bean>
+	
+	<bean id="acceptOnlyStreamsInDataStore" class="io.antmedia.security.AcceptOnlyStreamsInDataStore">
+			<property name="dataStore"  ref="db.datastore"/>
+			<property name="enabled" value="${settings.acceptOnlyStreamsInDataStore}" />
+	</bean>
 	
 	<!-- Defines the web handler which acts as an applications endpoint -->
 	<bean id="web.handler" class="io.antmedia.enterprise.webrtcapp.WebRTCSampleApplication">
 		<property name="appSettings" ref="app.settings" />
 		<property name="dataStoreFactory" ref="dataStoreFactory" />
+		<property name="streamPublishSecurityList">
+			<list>
+				<ref bean="acceptOnlyStreamsInDataStore"/>
+				<bean class="io.antmedia.security.ExpireStreamPublishSecurity" >
+					<property name="dataStore"  ref="db.datastore"/>
+				</bean>
+			</list>
+		</property>
 	</bean>
 	
     <bean id="webrtc.adaptor"  class="io.antmedia.enterprise.webrtc.WebRTCAdaptor"/>
@@ -86,6 +103,7 @@
       	
       	<property name="youtubeClientId" value="${youtube.clientId}" />
       	<property name="youtubeClientSecret" value="${youtube.clientSecret}" />
+      	<property name="acceptOnlyStreamsInDataStore" value="${settings.acceptOnlyStreamsInDataStore}" />
       	
 	</bean>
 
