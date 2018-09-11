@@ -43,14 +43,10 @@
 	</bean>
 
 	<context:component-scan base-package="io.antmedia.rest" />
-
-	<bean id="db.datastore" class="io.antmedia.datastore.db.MapDBStore">
-		<constructor-arg value="${webapp.dbName}" />
-	</bean>
 	
 	<bean id="acceptOnlyStreamsInDataStore" class="io.antmedia.security.AcceptOnlyStreamsInDataStore">
-			<property name="dataStore"  ref="db.datastore"/>
-			<property name="enabled" value="${settings.acceptOnlyStreamsInDataStore}" />
+		<property name="dataStoreFactory" ref="dataStoreFactory" />
+		<property name="enabled" value="${settings.acceptOnlyStreamsInDataStore}" />
 	</bean>
 	
 	<!-- Defines the web handler which acts as an applications endpoint -->
