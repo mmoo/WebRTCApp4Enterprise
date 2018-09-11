@@ -139,11 +139,12 @@ function WebRTCAdaptor(initialValues)
 		}
 	}
 	
-	this.publish = function (streamId) {
+	this.publish = function (streamId, token) {
 
 		var jsCmd = {
 				command : "publish",
 				streamId : streamId,
+				token : token,
 				video: thiz.mediaConstraints.video == false ? false : true,
 						audio: thiz.mediaConstraints.audio == false ? false : true,
 		};
@@ -165,13 +166,14 @@ function WebRTCAdaptor(initialValues)
 
 	}
 
-	this.play = function (streamId) {
+	this.play = function (streamId, token) {
 
 		thiz.playStreamId.push(streamId);
 		var jsCmd =
 		{
 				command : "play",
 				streamId : streamId,
+				token : token,
 		}
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));

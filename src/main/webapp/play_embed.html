@@ -33,8 +33,11 @@ video {
     if (streamId == "null") {
     		alert("No stream specified. Please add ?name={STREAM_ID}  to the url");
     }
+    var token = "<%= request.getParameter("token") %>";
+
+    
 	function startPlaying() {
-		webRTCAdaptor.play(streamNameBox.value);
+		webRTCAdaptor.play(streamNameBox.value, token);
 	}
 
 	function stopPlaying() {
@@ -88,7 +91,7 @@ video {
 			}
 			else if (info == "streamInformation") {
 				console.log("stream information");
-				webRTCAdaptor.play(streamId);
+				webRTCAdaptor.play(streamId, token);
 			}
 		},
 		callbackError : function(error) {
