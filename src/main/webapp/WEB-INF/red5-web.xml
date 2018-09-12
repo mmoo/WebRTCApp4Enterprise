@@ -61,7 +61,7 @@
 				<ref bean="acceptOnlyStreamsInDataStore"/>
 				<ref bean="token.service"/>
 				<bean class="io.antmedia.security.ExpireStreamPublishSecurity" >
-					<property name="dataStore"  ref="db.datastore"/>
+					<property name="dataStoreFactory"  ref="dataStoreFactory"/>
 				</bean>
 			</list>
 		</property>
