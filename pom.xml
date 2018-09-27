@@ -9,7 +9,7 @@
 	<groupId>io.antmedia.webrtc</groupId>
 	<artifactId>WebRTCAppEE</artifactId>
 	<packaging>war</packaging>
-	<version>${webrtcappee.version}</version>
+	<version>1.5.0-SNAPSHOT</version>
 	<name>WebRTCApp4 Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
@@ -268,8 +268,8 @@
 		<url>http://antmedia.io</url>
 	</organization>
 	<scm>
-		<url>https://gitlab.com/Ant-Media/WebRTCApp4Enterprise.git</url>
-		<connection>https://gitlab.com/Ant-Media/WebRTCApp4Enterprise.git</connection>
-		<developerConnection>https://gitlab.com/Ant-Media/WebRTCApp4Enterprise.git</developerConnection>
+		<url>https://github.com/ant-media/WebRTCApp4Enterprise.git</url>
+		<connection>https://github.com/ant-media/WebRTCApp4Enterprise.git</connection>
+		<developerConnection>https://github.com/ant-media/WebRTCApp4Enterprise.git</developerConnection>
 	</scm>
 </project>
