@@ -13,7 +13,7 @@ before_install:
 - git clone https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO"
 - cd Ant-Media-Enterprise
 - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -Dgpg.skip=true --quiet
-- cd..
+- cd ..
 
 install:
 - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V --quiet
