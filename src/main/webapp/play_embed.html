@@ -74,14 +74,22 @@ video {
 			if (info == "initialized") {
 				console.log("initialized");
 				webRTCAdaptor.getStreamInfo(streamId);
-				
-			} else if (info == "play_started") {
+			}
+			else if (info == "streamInformation") {
+				console.log("stream information");
+				webRTCAdaptor.play(streamId, token);
+			}
+			else if (info == "play_started") {
 				//joined the stream
 				console.log("play started");
 				document.getElementById("video_info").style.display = "none";
 			} else if (info == "play_finished") {
 				//leaved the stream
 				console.log("play finished");
+				//check that publish may start again
+				setTimeout(function(){
+					webRTCAdaptor.getStreamInfo(streamId);
+				}, 3000);
 			}
 			else if (info == "closed") {
 				//console.log("Connection closed");
@@ -89,10 +97,7 @@ video {
 					console.log("Connecton closed: " + JSON.stringify(description));
 				}
 			}
-			else if (info == "streamInformation") {
-				console.log("stream information");
-				webRTCAdaptor.play(streamId, token);
-			}
+
 		},
 		callbackError : function(error) {
 			//some of the possible errors, NotFoundError, SecurityError,PermissionDeniedError
