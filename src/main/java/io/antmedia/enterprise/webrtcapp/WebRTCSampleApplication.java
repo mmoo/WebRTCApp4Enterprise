@@ -1,10 +1,6 @@
 package io.antmedia.enterprise.webrtcapp;
 
-import org.red5.net.websocket.WebSocketPlugin;
-import org.red5.net.websocket.WebSocketScope;
-import org.red5.net.websocket.WebSocketScopeManager;
 import org.red5.server.api.scope.IScope;
-import org.red5.server.plugin.PluginRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
