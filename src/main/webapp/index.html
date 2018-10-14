@@ -105,12 +105,21 @@ body {
 			<p>
 				<input type="text" class="form-control" value="stream1"
 					id="streamName" placeholder="Type stream name">
+				<div class="form-check">	
+					<input class="form-check-input" disabled onchange="enableDesktopCapture(event.target.checked)" type="checkbox" value="" 
+					id="screen_share_checkbox">
+  					<label class="form-check-label" for="defaultCheck1" style="font-weight:normal">
+    						Screen Share
+  					</label>	
+  				</div>
 			</p>
 			<p>
+				
 				<button onclick="startPublishing()" class="btn btn-info" disabled
 					id="start_publish_button">Start Publishing</button>
 				<button onclick="stopPublishing()" class="btn btn-info" disabled
 					id="stop_publish_button">Stop Publishing</button>
+						
 			</p>
 
 						<span class="label label-success" id="broadcastingInfo" style="font-size:14px;display:none"
@@ -128,6 +137,8 @@ body {
 
 	var start_publish_button = document.getElementById("start_publish_button");
 	var stop_publish_button = document.getElementById("stop_publish_button");
+	
+	var screen_share_checkbox = document.getElementById("screen_share_checkbox");
 
 	var streamNameBox = document.getElementById("streamName");
 	
@@ -140,6 +151,15 @@ body {
 
 	function stopPublishing() {
 		webRTCAdaptor.stop(streamId);
+	}
+	
+	function enableDesktopCapture(enable) {
+		if (enable == true) {
+			webRTCAdaptor.switchDesktopCapture(streamId);
+		}
+		else {
+			webRTCAdaptor.switchVideoCapture(streamId);
+		}
 	}
 	
     function startAnimation() {
@@ -201,6 +221,9 @@ body {
 				console.log("publish finished");
 				start_publish_button.disabled = false;
 				stop_publish_button.disabled = true;
+			}
+			else if (info == "screen_share_extension_available") {
+				screen_share_checkbox.disabled = false;
 			}
 			else if (info == "closed") {
 				//console.log("Connection closed");
