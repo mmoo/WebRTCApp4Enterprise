@@ -68,21 +68,9 @@
 	</bean>
 	
     <bean id="webrtc.adaptor"  class="io.antmedia.enterprise.webrtc.WebRTCAdaptor"/>
-    <bean id="websocket.listener" class="io.antmedia.enterprise.webrtc.WebSocketListener" />
+     
 
-	<!-- WebSocket scope with our listeners -->
-	<bean id="webSocketScopeDefault" class="org.red5.net.websocket.WebSocketScope"
-		lazy-init="true">
-		<!-- Application scope -->
-		<constructor-arg ref="web.scope" />
-		<!-- The ws scope listeners -->
-		<property name="listeners">
-			<list>
-				 <ref bean="websocket.listener" />
-			</list>
-		</property>
-	</bean>
-	
+
 	<bean id="app.settings" class="io.antmedia.AppSettings" >
 		<property name="mp4MuxingEnabled" value="${settings.mp4MuxingEnabled}" />
 		<property name="addDateTimeToMp4FileName" value="${settings.addDateTimeToMp4FileName}" />
