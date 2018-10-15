@@ -33,6 +33,7 @@ function WebRTCAdaptor(initialValues)
 		return;
 	}
 
+
 	if (!this.isPlayMode)  // if it is in play mode, do not get user media
 	{
 		if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != false)
@@ -43,12 +44,12 @@ function WebRTCAdaptor(initialValues)
 				navigator.mediaDevices.getUserMedia({audio:true, video:false}).then(function(micStream){
 					navigator.mediaDevices.getUserMedia(thiz.mediaConstraints)
 					.then(function(stream) 
-					{
+							{
 						//console.debug("audio stream track count: " + audioStream.getAudioTracks().length);
 
 						var audioContext = new AudioContext();
 						var desktopSoundGainNode = audioContext.createGain();
-						
+
 						desktopSoundGainNode.gain.value = 1;
 
 						var audioDestionation = audioContext.createMediaStreamDestination();
@@ -68,13 +69,13 @@ function WebRTCAdaptor(initialValues)
 						audioDestionation.stream.getAudioTracks().forEach(function(track) {
 							stream.addTrack(track);
 						});
-						
+
 						console.debug("Running gotStream");
 						thiz.gotStream(stream);
-						
-					}).catch(function (error) {
-						thiz.callbackError(error.name, error.message);
-					});;
+
+							}).catch(function (error) {
+								thiz.callbackError(error.name, error.message);
+							});
 				}).catch(function(error){
 					thiz.callbackError(error.name, error.message);
 				});	
@@ -127,7 +128,7 @@ function WebRTCAdaptor(initialValues)
 			thiz.webSocketAdaptor = new WebSocketAdaptor();
 		}
 	}
-	
+
 	this.enableMicInMixedAudio = function(enable) {
 		if (thiz.micGainNode != null) {
 			if (enable) {
@@ -138,7 +139,7 @@ function WebRTCAdaptor(initialValues)
 			}
 		}
 	}
-	
+
 	this.publish = function (streamId, token) {
 
 		var jsCmd = {
@@ -228,6 +229,118 @@ function WebRTCAdaptor(initialValues)
 		}
 	};
 
+	this.switchVideoCapture = function(streamId) {
+		var mediaConstraints = {
+				video : true,
+				audio : false
+		};
+		
+		thiz.switchVideoSource(streamId, mediaConstraints, null);
+	}
+	
+	this.checkExtension = function() {
+		var callback = function (message) {
+				
+			if (message.data == "rtcmulticonnection-extension-loaded") {
+				thiz.callback("screen_share_extension_available");
+				window.removeEventListener("message", callback);
+			}
+
+		};
+		//add event listener for desktop capture
+		window.addEventListener("message", callback, false);
+
+		window.postMessage("are-you-there", "*");
+
+	};
+
+	this.switchDesktopCapture = function(streamId) {
+
+		var callback = function (message) {
+			console.debug("Message is received: " + message);
+
+			if (message.data == "rtcmulticonnection-extension-loaded") {
+				console.log("rtcmulticonnection-extension-loaded parameter is received");
+
+				window.postMessage("get-sourceId", "*");
+			}
+			else if (message.data == "PermissionDeniedError") {
+				console.log("Permission denied error")
+			}
+			else if (message.data && message.data.sourceId) {
+				console.log("received source id");
+
+				console.debug("source id: " + message.data.sourceId);
+				console.debug("canRequestAudio: ");
+				console.debug(message.data.options.canRequestAudioTrack);
+
+				var mediaConstraints = {
+						audio: false,
+						video: {
+							mandatory: {
+								chromeMediaSource: 'desktop',
+								chromeMediaSourceId: message.data.sourceId,
+							},
+							optional: []
+						}
+				};
+
+				thiz.switchVideoSource(streamId, mediaConstraints, function(event) {
+					thiz.switchVideoCapture(streamId);
+				});
+
+				//remove event listener
+				window.removeEventListener("message", callback);	    
+			}
+
+		};
+		//add event listener for desktop capture
+		window.addEventListener("message", callback, false);
+
+		window.postMessage("are-you-there", "*");
+
+	}
+	
+	thiz.arrangeStreams = function(stream, onEndedCallback) {
+		var videoTrack = thiz.localStream.getVideoTracks()[0];
+		thiz.localStream.removeTrack(videoTrack);
+		videoTrack.stop();
+		thiz.localStream.addTrack(stream.getVideoTracks()[0]);
+		thiz.localVideo.srcObject = thiz.localStream;
+		if (onEndedCallback != null) {
+			stream.getVideoTracks()[0].onended = function(event) {
+					onEndedCallback(event);
+			}
+		}
+	}
+
+	this.switchVideoSource = function (streamId, mediaConstraints, onEndedCallback) {
+		
+		navigator.mediaDevices.getUserMedia(mediaConstraints)
+		.then(function(stream) {
+
+			if (thiz.remotePeerConnection[streamId] != null) {
+				var videoTrackSender = thiz.remotePeerConnection[streamId].getSenders().find(function(s) {
+					 return s.track.kind == "video";
+				});
+				
+				videoTrackSender.replaceTrack(stream.getVideoTracks()[0]).then(function(result) {
+					thiz.arrangeStreams(stream, onEndedCallback);
+					
+				}).catch(function(error) {
+					console.log(error.name);
+				});
+			}
+			else {
+				thiz.arrangeStreams(stream, onEndedCallback);	
+			}
+			
+		})
+		.catch(function(error) {
+			thiz.callbackError(error.name);
+		});
+	}
+
 
 	this.onTrack = function(event, streamId) {
 		console.log("onTrack");
@@ -272,7 +385,6 @@ function WebRTCAdaptor(initialValues)
 	this.initPeerConnection = function(streamId) {
 		if (thiz.remotePeerConnection[streamId] == null) 
 		{
-
 			var closedStreamId = streamId;
 			console.log("stream id in init peer connection: " + streamId + " close dstream id: " + closedStreamId);
 			thiz.remotePeerConnection[streamId] = new RTCPeerConnection(thiz.peerconnection_config);
@@ -322,28 +434,27 @@ function WebRTCAdaptor(initialValues)
 		thiz.remotePeerConnection[streamId]
 		.setLocalDescription(configuration)
 		.then(function(responose) 
-				{
-			console.log("Set local description successfully for stream Id " + streamId);
+			{
+				console.debug("Set local description successfully for stream Id " + streamId);
 
-			var jsCmd = {
+				var jsCmd = {
 					command : "takeConfiguration",
 					streamId : streamId,
 					type : configuration.type,
 					sdp : configuration.sdp
 
-			};
+				};
 
-			if (thiz.debug) {
-				console.log("local sdp: " );
-				console.log(configuration);
-			}
+				if (thiz.debug) {
+					console.debug("local sdp: ");
+					console.debug(configuration.sdp);
+				}
 
-			thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
+				thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 
-				})
-				.catch(function(error){
-					console.error("Cannot set local description. Error is: " + error);
-				});
+		}).catch(function(error){
+			console.error("Cannot set local description. Error is: " + error);
+		});
 
 
 	}
@@ -355,7 +466,7 @@ function WebRTCAdaptor(initialValues)
 			var videoTrackSender = null;
 
 
-			for (index in senders) {
+			for (var index in senders) {
 				if (senders[index].track.kind == "video") {
 					videoTrackSender = senders[index];
 					break;
@@ -389,7 +500,7 @@ function WebRTCAdaptor(initialValues)
 			var videoTrackSender = null;
 
 
-			for (index in senders) {
+			for (var index in senders) {
 				if (senders[index].track.kind == "video") {
 					videoTrackSender = senders[index];
 					break;
@@ -433,7 +544,7 @@ function WebRTCAdaptor(initialValues)
 			var senders = thiz.remotePeerConnection.getSenders();
 			var audioTrackSender = null;
 
-			for (index in senders) {
+			for (var index in senders) {
 				if (senders[index].track.kind == "audio") {
 					audioTrackSender = senders[index];
 					break;
@@ -468,7 +579,7 @@ function WebRTCAdaptor(initialValues)
 			var senders = thiz.remotePeerConnection.getSenders();
 			var audioTrackSender = null;
 
-			for (index in senders) {
+			for (var index in senders) {
 				if (senders[index].track.kind == "audio") {
 					audioTrackSender = senders[index];
 					break;
@@ -517,8 +628,9 @@ function WebRTCAdaptor(initialValues)
 		})).then(function(response)  {
 
 			if (thiz.debug) {
-				console.log("set remote description is succesfull with response: " + response + " for stream : " 
+				console.debug("set remote description is succesfull with response: " + response + " for stream : " 
 						+ streamId + " and type: " + type);
+				console.debug(conf);
 			}
 
 			if (type == "offer") {
@@ -599,6 +711,7 @@ function WebRTCAdaptor(initialValues)
 
 			connected = true;
 			thiz.callback("initialized");
+			thiz.checkExtension();
 		}
 
 		this.send = function(text) {
