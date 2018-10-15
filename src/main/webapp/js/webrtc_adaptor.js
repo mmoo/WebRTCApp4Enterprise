@@ -240,8 +240,11 @@ function WebRTCAdaptor(initialValues)
 	
 	this.checkExtension = function() {
 		var callback = function (message) {
-			thiz.callback("screen_share_extension_available");
-			window.removeEventListener("message", callback);	
+				
+			if (message.data == "rtcmulticonnection-extension-loaded") {
+				thiz.callback("screen_share_extension_available");
+				window.removeEventListener("message", callback);
+			}
 
 		};
 		//add event listener for desktop capture
