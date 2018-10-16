@@ -157,7 +157,7 @@ body {
 	
 	var remoteVideos = new Array();
 	
-	var roomOfStream new Array();
+	var roomOfStream = new Array();
 
 	var remoteVideoIndex = 0;
 
@@ -239,7 +239,7 @@ body {
 			{
 				var room = obj.ATTR_ROOM_NAME;
 				roomOfStream[obj.streamId] = room;
-				console.log("joined the room " + room);
+				console.log("joined the room: " + roomOfStream[obj.streamId] );
 				console.log(obj)
 				publish(obj.streamId);
 				var streams = obj.streams;
