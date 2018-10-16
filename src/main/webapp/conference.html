@@ -157,6 +157,8 @@ body {
 	
 	var remoteVideos = new Array();
 	
+	var roomOfStream new Array();
+
 	var remoteVideoIndex = 0;
 
 	var publishStreamId;
@@ -235,7 +237,9 @@ body {
 			}
 			else if (info == "joinedTheRoom") 
 			{
-				console.log("joined the room ");
+				var room = obj.ATTR_ROOM_NAME;
+				roomOfStream[obj.streamId] = room;
+				console.log("joined the room " + room);
 				console.log(obj)
 				publish(obj.streamId);
 				var streams = obj.streams;
@@ -254,7 +258,8 @@ body {
 			}
 			else if (info == "newStreamAvailable") 
 			{	
-				console.debug("new stream available with id: " +  obj.streamId);
+				var room = roomOfStream[obj.streamId];
+				console.debug("new stream available with id: " +  obj.streamId +  "on the room:" + room );
 				
 				if (remoteVideos[obj.streamId] == null) {
 					console.log("getting video object from DOM with index: " + remoteVideoIndex);
