@@ -462,32 +462,9 @@ function WebRTCAdaptor(initialValues)
 
 	this.turnOffLocalCamera = function() {
 		if (thiz.remotePeerConnection != null) {
-			var senders = thiz.remotePeerConnection.getSenders();
-			var videoTrackSender = null;
-
-
-			for (var index in senders) {
-				if (senders[index].track.kind == "video") {
-					videoTrackSender = senders[index];
-					break;
-				}
-			}
-			if (videoTrackSender != null) 
-			{
-				thiz.remotePeerConnection.removeTrack(videoTrackSender);
-				thiz.localStream.removeTrack(videoTrackSender.track);
-				thiz.localVideo.srcObject = thiz.localStream;
-
-				thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
-				.then(function(configuration){
-					thiz.gotDescription(configuration, streamId)
-				})
-				.catch(function () {
-					console.log("create offer error");
-				});
-			}
-
-
+			
+			var track = thiz.localStream.getVideoTracks()[0];
+			track.enabled = false;
 		}
 		else {
 			this.callbackError("NoActiveConnection");
@@ -496,43 +473,8 @@ function WebRTCAdaptor(initialValues)
 
 	this.turnOnLocalCamera = function() {
 		if (thiz.remotePeerConnection != null) {
-			var senders = thiz.remotePeerConnection.getSenders();
-			var videoTrackSender = null;
-
-
-			for (var index in senders) {
-				if (senders[index].track.kind == "video") {
-					videoTrackSender = senders[index];
-					break;
-				}
-			}
-			if (videoTrackSender == null) {
-				var value = true;
-				if (typeof thiz.mediaConstraints.video != "undefined" && thiz.mediaConstraints.video != "false")
-				{
-					value = thiz.mediaConstraints.video;
-				}
-				navigator.mediaDevices.getUserMedia({video:value})
-				.then(function(stream) {
-					thiz.localStream.addTrack(stream.getVideoTracks()[0]);
-					thiz.localVideo.srcObject = thiz.localStream;
-					thiz.remotePeerConnection.addTrack(thiz.localStream.getVideoTracks()[0], thiz.localStream);
-
-					thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
-					.then(thiz.gotDescription)
-					.catch(function () {
-						console.log("create offer error");
-					});
-				})
-				.catch(function(error) {
-					thiz.callbackError(error.name);
-				});
-			}
-			else {
-				this.callbackError("VideoAlreadyActive");
-			}
-
-
+			var track = thiz.localStream.getVideoTracks()[0];
+			track.enabled = true;
 		}
 		else {
 			this.callbackError("NoActiveConnection");
@@ -541,30 +483,8 @@ function WebRTCAdaptor(initialValues)
 
 	this.muteLocalMic = function() {
 		if (thiz.remotePeerConnection != null) {
-			var senders = thiz.remotePeerConnection.getSenders();
-			var audioTrackSender = null;
-
-			for (var index in senders) {
-				if (senders[index].track.kind == "audio") {
-					audioTrackSender = senders[index];
-					break;
-				}
-			}
-			if (audioTrackSender != null) {
-				thiz.remotePeerConnection.removeTrack(audioTrackSender);
-				thiz.localStream.removeTrack(audioTrackSender.track);
-				thiz.localVideo.srcObject = thiz.localStream;
-
-				thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
-				.then(thiz.gotDescription)
-				.catch(function () {
-					console.log("create offer error");
-				});
-			}
-			else {
-				this.callbackError("AudioAlreadyNotActive");
-			}
-
+			var track = thiz.localStream.getAudioTracks()[0];
+			track.enabled = false;
 		}
 		else {
 			this.callbackError("NoActiveConnection");
@@ -576,38 +496,8 @@ function WebRTCAdaptor(initialValues)
 	 */
 	this.unmuteLocalMic = function() {
 		if (thiz.remotePeerConnection != null) {
-			var senders = thiz.remotePeerConnection.getSenders();
-			var audioTrackSender = null;
-
-			for (var index in senders) {
-				if (senders[index].track.kind == "audio") {
-					audioTrackSender = senders[index];
-					break;
-				}
-			}
-			if (audioTrackSender == null) {
-
-				navigator.mediaDevices.getUserMedia({audio:thiz.mediaConstraints.audio})
-				.then(function(stream) {
-					thiz.localStream.addTrack(stream.getAudioTracks()[0]);
-					thiz.localVideo.srcObject = thiz.localStream;
-					thiz.remotePeerConnection.addTrack(thiz.localStream.getAudioTracks()[0], thiz.localStream);
-
-					thiz.remotePeerConnection.createOffer(thiz.sdp_constraints)
-					.then(thiz.gotDescription)
-					.catch(function () {
-						console.log("create offer error");
-					});
-				})
-				.catch(function(error) {
-					thiz.callbackError(error.name);
-				});
-
-			}
-			else {
-				this.callbackError("AudioAlreadyActive");
-			}
-
+			var track = thiz.localStream.getAudioTracks()[0];
+			track.enabled = true;
 		}
 		else {
 			this.callbackError("NoActiveConnection");
