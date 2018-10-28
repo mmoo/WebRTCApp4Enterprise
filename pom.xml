@@ -126,12 +126,6 @@
 		</testResources>
 	</build>
 	<dependencies>
-		<dependency>
-			<groupId>org.red5</groupId>
-			<artifactId>websocket</artifactId>
-			<version>${websocket.version}</version>
-			<scope>provided</scope>
-		</dependency>
 		 <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-websocket</artifactId>
