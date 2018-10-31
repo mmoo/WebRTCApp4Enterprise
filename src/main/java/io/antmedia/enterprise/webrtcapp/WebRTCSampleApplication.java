@@ -23,12 +23,8 @@ public class WebRTCSampleApplication extends WebRTCApplication implements Applic
 	
 	
 	@Override
-	public boolean appStart(IScope app) {
-		System.out.println("\n\n\n"+app+"\n\n\n");
-		
-		
+	public boolean appStart(IScope app) {		
 		application = this;
-
 		return super.appStart(app);
 	}
 	
