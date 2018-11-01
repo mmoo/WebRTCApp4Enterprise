@@ -83,6 +83,8 @@
       	<property name="deleteHLSFilesOnEnded" value="${settings.deleteHLSFilesOnEnded}" />
       	<property name="serverName" value="#{ @'ant.media.server.settings'.serverName }" />
       	<property name="acceptOnlyStreamsInDataStore" value="${settings.acceptOnlyStreamsInDataStore}" />
+      	<property name="webRTCEnabled" value="${settings.webRTCEnabled}" />
+	  
       	
       	<property name="facebookClientId" value="${facebook.clientId}" />
       	<property name="facebookClientSecret" value="${facebook.clientSecret}" />
