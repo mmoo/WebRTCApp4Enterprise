@@ -200,6 +200,16 @@ function WebRTCAdaptor(initialValues)
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}
+	
+	this.leaveFromRoom = function(streamId) {
+		var jsCmd = {
+				command : "leaveFromRoom",
+				room: roomName,
+		};
+
+
+		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
+	}
 
 	this.leave = function (streamId) {
 
