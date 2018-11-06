@@ -201,12 +201,13 @@ function WebRTCAdaptor(initialValues)
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}
 	
-	this.leaveFromRoom = function(streamId) {
+	this.leaveFromRoom = function(roomName) {
+		thiz.roomName = roomName;
 		var jsCmd = {
 				command : "leaveFromRoom",
 				room: roomName,
 		};
-
+		console.log ("leave request is sent for "+ roomName);
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}
@@ -621,6 +622,7 @@ function WebRTCAdaptor(initialValues)
 				return;
 			}
 			wsConn.send(text);
+			console.log("sent message:" +text);
 		}
 
 		this.isConnected = function() {

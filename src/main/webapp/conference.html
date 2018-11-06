@@ -170,20 +170,16 @@ body {
 	}
 
 	function leaveRoom() {
-		/*
-			webRTCAdaptor.stop(publishStreamId);
-			
-			for(var key in remoteVideos) {
-				console.log("index: " + key);
-				remoteVideos[key].srcObject = null;
-				remoteVideos[key] = null;
-				delete remoteVideos[key];
-				webRTCAdaptor.stop(key);
-			}
-			
-			remoteVideoIndex = 0;
-		 */
+
 		webRTCAdaptor.leaveFromRoom(roomNameBox.value);
+
+		for ( var key in remoteVideos) {
+			console.log("index: " + key);
+			remoteVideos[key].srcObject = null;
+			remoteVideos[key] = null;
+			delete remoteVideos[key];
+		}
+		remoteVideoIndex = 0;
 	}
 
 	function publish(streamName) {
@@ -308,6 +304,10 @@ body {
 						console.debug("publish finished");
 						join_publish_button.disabled = false;
 						stop_publish_button.disabled = true;
+					} else if (info == "leavedFromRoom") {
+						var room = obj.ATTR_ROOM_NAME;
+						console.debug("leaved from the room:" + room);
+
 					} else if (info == "closed") {
 						//console.log("Connection closed");
 						if (typeof obj != "undefined") {
