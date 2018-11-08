@@ -21,6 +21,10 @@
 		</listener-class>
 	</listener>
 	
+	 <listener>
+        <listener-class>io.antmedia.filter.TokenFilter</listener-class>
+    </listener>
+	
 	<filter>
 		<filter-name>TokenFilter</filter-name>
 		<filter-class>io.antmedia.filter.TokenFilter</filter-class>
