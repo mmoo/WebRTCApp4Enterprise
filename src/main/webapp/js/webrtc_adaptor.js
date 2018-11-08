@@ -333,40 +333,42 @@ function WebRTCAdaptor(initialValues)
 		thiz.switchVideoSource(streamId, mediaConstraints, null);
 	}
 
-	this.screenShareExtensionCallback = function(message) {
-
-		if (message.data == "rtcmulticonnection-extension-loaded") {
-			console.debug("rtcmulticonnection-extension-loaded parameter is received");
-			window.postMessage("get-sourceId", "*");
-		}
-		else if (message.data == "PermissionDeniedError") {
-			console.debug("Permission denied error");
-			thiz.callbackError("screen_share_permission_denied");
-		}
-		else if (message.data && message.data.sourceId) {
-			var mediaConstraints = {
-					audio: false,
-					video: {
-						mandatory: {
-							chromeMediaSource: 'desktop',
-							chromeMediaSourceId: message.data.sourceId,
-						},
-						optional: []
-					}
-			};
-
-			thiz.switchVideoSource(streamId, mediaConstraints, function(event) {
-				thiz.switchVideoCapture(streamId);
-			});
-
-			//remove event listener
-			window.removeEventListener("message", thiz.screenShareExtensionCallback);	    
-		}
-	}
-
 	this.switchDesktopCapture = function(streamId) {
+		
+		var screenShareExtensionCallback =  function(message) {
+
+			if (message.data == "rtcmulticonnection-extension-loaded") {
+				console.debug("rtcmulticonnection-extension-loaded parameter is received");
+				window.postMessage("get-sourceId", "*");
+			}
+			else if (message.data == "PermissionDeniedError") {
+				console.debug("Permission denied error");
+				thiz.callbackError("screen_share_permission_denied");
+			}
+			else if (message.data && message.data.sourceId) {
+				var mediaConstraints = {
+						audio: false,
+						video: {
+							mandatory: {
+								chromeMediaSource: 'desktop',
+								chromeMediaSourceId: message.data.sourceId,
+							},
+							optional: []
+						}
+				};
+
+				thiz.switchVideoSource(streamId, mediaConstraints, function(event) {
+					thiz.switchVideoCapture(streamId);
+				});
+
+				//remove event listener
+				window.removeEventListener("message", screenShareExtensionCallback);	    
+			}
+		}
+		
+		
 		//add event listener for desktop capture
-		window.addEventListener("message", thiz.screenShareExtensionCallback, false);
+		window.addEventListener("message", screenShareExtensionCallback, false);
 
 		window.postMessage("are-you-there", "*");
 	}
