@@ -21,8 +21,8 @@
 		</listener-class>
 	</listener>
 	
-	 <listener>
-        <listener-class>io.antmedia.filter.TokenFilter</listener-class>
+     <listener>
+        <listener-class>io.antmedia.security.TokenService</listener-class>
     </listener>
 	
 	<filter>
