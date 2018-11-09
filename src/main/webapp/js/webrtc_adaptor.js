@@ -114,6 +114,23 @@ function WebRTCAdaptor(initialValues)
 			thiz.getUserMedia(mediaConstraints, audioConstraint);
 		}
 	}
+	
+	/**
+	 * Closes stream, if you want to stop peer connection, call stop(streamId)
+	 */
+	this.closeStream = function () {
+		
+		thiz.localStream.getVideoTracks().forEach(function(track) {
+			track.onended = null;
+            track.stop();
+        });
+		
+		thiz.localStream.getAudioTracks().forEach(function(track) {
+			track.onended = null;
+            track.stop();
+        });
+		
+	}
 
 
 	/**
@@ -225,7 +242,6 @@ function WebRTCAdaptor(initialValues)
 	}
 
 	this.publish = function (streamId, token) {
-
 		var jsCmd = {
 				command : "publish",
 				streamId : streamId,
@@ -233,7 +249,6 @@ function WebRTCAdaptor(initialValues)
 				video: thiz.mediaConstraints.video == false ? false : true,
 						audio: thiz.mediaConstraints.audio == false ? false : true,
 		};
-
 
 		thiz.webSocketAdaptor.send(JSON.stringify(jsCmd));
 	}
@@ -252,7 +267,6 @@ function WebRTCAdaptor(initialValues)
 	}
 
 	this.play = function (streamId, token) {
-
 		thiz.playStreamId.push(streamId);
 		var jsCmd =
 		{

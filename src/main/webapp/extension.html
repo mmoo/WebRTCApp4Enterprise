@@ -215,6 +215,7 @@ body {
 				console.log("publish finished");
 				start_publish_button.disabled = false;
 				stop_publish_button.disabled = true;
+				webRTCAdaptor.closeStream();
 			}
 			else if (info == "screen_share_extension_available") {
 				console.log("screen share extension available");
