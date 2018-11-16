@@ -10,7 +10,10 @@ before_install:
 - cd Ant-Media-Server-Common
 - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -Dgpg.skip=true --quiet
 - cd ..
-- git clone https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO"
+- (if [ $(git ls-remote https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO" $TRAVIS_BRANCH  |
+  wc -l) == "1" ];  then echo " $TRAVIS_BRANCH branch found";  git clone --depth=1
+  -b $TRAVIS_BRANCH https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO";  else
+  echo "branch not found"; git clone --depth=1 https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO";  fi)
 - cd Ant-Media-Enterprise
 - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -Dgpg.skip=true --quiet
 - cd ..
