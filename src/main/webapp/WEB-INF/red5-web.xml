@@ -51,6 +51,11 @@
 		
 	<bean id="hls.viewerstats" class="io.antmedia.statistic.HlsViewerStats" />
 	<!--   <bean id="token.service" class="io.antmedia.security.TokenService" />-->
+	
+	<bean id="token.service"
+		class="#{ T(io.antmedia.rest.BroadcastRestService).isEnterprise() ? 'io.antmedia.enterprise.security.TokenService' : 'io.antmedia.security.MockTokenService' }">
+
+	</bean>
 
 	<!-- Defines the web handler which acts as an applications endpoint -->
 	<bean id="web.handler" class="io.antmedia.enterprise.webrtcapp.WebRTCSampleApplication">
@@ -59,7 +64,7 @@
 		<property name="streamPublishSecurityList">
 			<list>
 				<ref bean="acceptOnlyStreamsInDataStore"/>
-			<!--  	<ref bean="tokenService"/>-->
+			  	<ref bean="token.service"/>
 				<bean class="io.antmedia.security.ExpireStreamPublishSecurity" >
 					<property name="dataStoreFactory"  ref="dataStoreFactory"/>
 				</bean>
