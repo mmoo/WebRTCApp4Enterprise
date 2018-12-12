@@ -14,6 +14,19 @@ before_install:
 - cd Ant-Media-Server-Common
 - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -Dgpg.skip=true --quiet
 - cd ..
+- (if [ $(git ls-remote https://github.com/ant-media/Ant-Media-Server.git $TRAVIS_BRANCH  | wc -l) == "1" ];  
+    then 
+      echo "$TRAVIS_BRANCH branch found in Ant-Media-Server";  
+      git clone --depth=1 -b $TRAVIS_BRANCH https://github.com/ant-media/Ant-Media-Server.git;  
+    else 
+      echo "$TRAVIS_BRANCH branch not found checkout master"; 
+      git clone --depth=1 https://github.com/ant-media/Ant-Media-Server.git;  
+  fi)
+- cd Ant-Media-Server 
+- mvn clean install -DskipTests -Dgpg.skip=true --quiet
+- cd ..  #up to Ant-Media-Server 
+  
+
 - (if [ $(git ls-remote https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO" $TRAVIS_BRANCH  |
   wc -l) == "1" ];  then echo " $TRAVIS_BRANCH branch found";  git clone --depth=1
   -b $TRAVIS_BRANCH https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO";  else
