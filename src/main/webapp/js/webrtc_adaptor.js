@@ -372,6 +372,7 @@ function WebRTCAdaptor(initialValues)
 				};
 
 				thiz.switchVideoSource(streamId, mediaConstraints, function(event) {
+					thiz.callback("screen_share_stopped");
 					thiz.switchVideoCapture(streamId);
 				});
 

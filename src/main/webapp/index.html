@@ -229,6 +229,9 @@ body {
 				console.log("screen share extension available");
 				install_extension_link.style.display = "none";
 			}
+			else if (info == "screen_share_stopped") {
+				console.log("screen share stopped");
+			}
 			else if (info == "closed") {
 				//console.log("Connection closed");
 				if (typeof description != "undefined") {
