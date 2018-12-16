@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>io.antmedia</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.6.0-SNAPSHOT</version>
+		<version>1.6.0</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.antmedia.webrtc</groupId>
@@ -138,8 +138,6 @@
 			<version>${ant-media-server.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		
-		
 		<dependency>
 			<groupId>io.antmedia.enterprise</groupId>
 			<artifactId>ant-media-enterprise</artifactId>
