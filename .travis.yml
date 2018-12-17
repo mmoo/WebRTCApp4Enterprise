@@ -26,11 +26,14 @@ before_install:
 - mvn clean install -DskipTests -Dgpg.skip=true --quiet
 - cd ..  #up to Ant-Media-Server 
   
-
-- (if [ $(git ls-remote https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO" $TRAVIS_BRANCH  |
-  wc -l) == "1" ];  then echo " $TRAVIS_BRANCH branch found";  git clone --depth=1
-  -b $TRAVIS_BRANCH https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO";  else
-  echo "branch not found"; git clone --depth=1 https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO";  fi)
+- (if [ $(git ls-remote https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO" $TRAVIS_BRANCH  | wc -l) == "1" ];  
+    then 
+      echo " $TRAVIS_BRANCH branch found";  
+      git clone --depth=1 -b $TRAVIS_BRANCH https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO";  
+    else
+      echo "branch not found"; 
+      git clone --depth=1 https://"$GITLAB_USERNAME":"$GITLAB_TOKEN"@"$GITLAB_REPO";  
+  fi)
 - cd Ant-Media-Enterprise
 - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -Dgpg.skip=true --quiet
 - cd ..
@@ -55,4 +58,4 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    branch: master
+    condition: $TRAVIS_TAG =~ ^release
