@@ -45,6 +45,15 @@ function WebRTCAdaptor(initialValues)
 			if (audioTrack.length > 0) {
 				stream.removeTrack(audioTrack[0]);
 			}
+					
+			//add callback if desktop is sharing
+			if (mediaConstraints.video != "undefined" && mediaConstraints.video.mandatory != "undefined"
+				&& mediaConstraints.video.mandatory.chromeMediaSource == "desktop") {
+				
+				stream.getVideoTracks()[0].onended = function(event) {
+					thiz.callback("screen_share_stopped");
+				}
+			}
 
 			//now get only audio to add this stream
 			if (audioConstraint != "undefined" && audioConstraint != false) {
