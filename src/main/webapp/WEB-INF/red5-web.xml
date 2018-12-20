@@ -117,7 +117,7 @@
 		<!--  
 		<property name="streamFetcherBufferTime" value="${settings.streamFetcherBufferTime}" />
 		 -->
-
+		<property name="webRTCFrameRate" value="${settings.webRTCFrameRate}" />
 	</bean>
 
 </beans>
