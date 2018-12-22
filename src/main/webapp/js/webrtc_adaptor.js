@@ -47,8 +47,10 @@ function WebRTCAdaptor(initialValues)
 			}
 					
 			//add callback if desktop is sharing
-			if (mediaConstraints.video != "undefined" && mediaConstraints.video.mandatory != "undefined"
-				&& mediaConstraints.video.mandatory.chromeMediaSource == "desktop") {
+			if (mediaConstraints.video != "undefined" 
+				  && typeof mediaConstraints.video.mandatory != "undefined"
+				  && typeof mediaConstraints.video.mandatory.chromeMediaSource != "undefined"
+				  && mediaConstraints.video.mandatory.chromeMediaSource == "desktop") {
 				
 				stream.getVideoTracks()[0].onended = function(event) {
 					thiz.callback("screen_share_stopped");
