@@ -20,7 +20,8 @@ video {
 <div id="video_info" >Stream will start playing automatically<br/>when it is live</div>
 	
 		
-<video id="remoteVideo" autoplay controls playsinline></video>
+<video id="remoteVideo" autoplay controls playsinline style="display:none;"></video>
+<img id="play_button" src="images/play.png" onclick="playVideo()" style="position:absolute;top:30px;left:30px;display:none;"/>
 		
 
 </body>
@@ -35,7 +36,19 @@ video {
     }
     var token = "<%= request.getParameter("token") %>";
 
-    
+    function playVideo() {
+	   document.getElementById("remoteVideo").style.display = "block";
+	   document.getElementById("remoteVideo").play().then(function(value){
+           //autoplay started
+		   document.getElementById("play_button").style.display="none";
+       }).catch(function(error) {
+			//
+			document.getElementById("play_button").style.display="block";
+			console.log("User interaction needed to start playing");
+       });
+
+	}
+
 	function startPlaying() {
 		webRTCAdaptor.play(streamNameBox.value, token);
 	}
@@ -83,6 +96,7 @@ video {
 				//joined the stream
 				console.log("play started");
 				document.getElementById("video_info").style.display = "none";
+				playVideo();
 			} else if (info == "play_finished") {
 				//leaved the stream
 				console.log("play finished");
