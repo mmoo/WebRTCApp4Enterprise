@@ -4,12 +4,12 @@
 		<groupId>io.antmedia</groupId>
 		<artifactId>parent</artifactId>
 		<version>1.7.0-SNAPSHOT</version>
+
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.antmedia.webrtc</groupId>
 	<artifactId>WebRTCAppEE</artifactId>
 	<packaging>war</packaging>
-	<version>${webrtcappee.version}</version>
 	<name>WebRTCApp4 Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
@@ -135,13 +135,13 @@
 		<dependency>
 			<groupId>io.antmedia</groupId>
 			<artifactId>ant-media-server</artifactId>
-			<version>${ant-media-server.version}</version>
+			<version>${project.parent.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.antmedia.enterprise</groupId>
 			<artifactId>ant-media-enterprise</artifactId>
-			<version>${ant-media-server-enterprise.version}</version>
+			<version>${project.parent.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
