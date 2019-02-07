@@ -8,6 +8,8 @@ function WebRTCAdaptor(initialValues)
 	thiz.peerconnection_config = null;
 	thiz.sdp_constraints = null;
 	thiz.remotePeerConnection = new Array();
+	thiz.remoteDescriptionSet = new Array();
+	thiz.iceCandidateList = new Array();
 	thiz.webSocketAdaptor = null;
 	thiz.roomName = null;
 	thiz.videoTrackSender = null;
@@ -486,6 +488,8 @@ function WebRTCAdaptor(initialValues)
 			var closedStreamId = streamId;
 			console.log("stream id in init peer connection: " + streamId + " close dstream id: " + closedStreamId);
 			thiz.remotePeerConnection[streamId] = new RTCPeerConnection(thiz.peerconnection_config);
+			thiz.remoteDescriptionSet[streamId] = false;
+			thiz.iceCandidateList[streamId] = new Array();
 			if (!thiz.playStreamId.includes(streamId)) 
 			{
 				thiz.remotePeerConnection[streamId].addStream(thiz.localStream);
@@ -531,8 +535,7 @@ function WebRTCAdaptor(initialValues)
 	{
 		thiz.remotePeerConnection[streamId]
 		.setLocalDescription(configuration)
-		.then(function(responose) 
-				{
+		.then(function(responose)  {
 			console.debug("Set local description successfully for stream Id " + streamId);
 
 			var jsCmd = {
@@ -620,6 +623,14 @@ function WebRTCAdaptor(initialValues)
 						+ streamId + " and type: " + type);
 				console.debug(conf);
 			}
+			
+			thiz.remoteDescriptionSet[streamId] = true;
+			var length = thiz.iceCandidateList[streamId].length;
+			console.debug("Ice candidate list size to be added: " + length);
+			for (var i = 0; i < length; i++) {
+				thiz.addIceCandidate(streamId, thiz.iceCandidateList[streamId][i]);
+			}
+			thiz.iceCandidateList[streamId] = [];
 
 			if (type == "offer") {
 				//SDP constraints may be different in play mode
@@ -657,7 +668,18 @@ function WebRTCAdaptor(initialValues)
 		});
 
 		thiz.initPeerConnection(streamId);
+		
+		if (thiz.remoteDescriptionSet[streamId] == true) {
+			thiz.addIceCandidate(streamId, candidate);
+		}
+		else {
+			console.debug("Ice candidate is added to list because remote description is not set yet");
+			thiz.iceCandidateList[streamId].push(candidate);
+		}
 
+	}
+	
+	this.addIceCandidate = function(streamId, candidate) {
 		thiz.remotePeerConnection[streamId].addIceCandidate(candidate)
 		.then(function(response) {
 			if (thiz.debug) {
@@ -668,7 +690,6 @@ function WebRTCAdaptor(initialValues)
 			console.error("ice candiate cannot be added for stream id: " + streamId + " error is: " + error  );
 			console.error(candidate);
 		});
-
 	}
 
 	this.startPublishing = function(idOfStream) {
@@ -723,7 +744,7 @@ function WebRTCAdaptor(initialValues)
 				//this command is received first, when publishing so playmode is false
 
 				if (thiz.debug) {
-					console.log("received start command");
+					console.debug("received start command");
 				}
 
 				thiz.startPublishing(obj.streamId);
@@ -731,7 +752,8 @@ function WebRTCAdaptor(initialValues)
 			else if (obj.command == "takeCandidate") {
 
 				if (thiz.debug) {
-					console.log("received ice candidate for stream id " + obj.streamId);
+					console.debug("received ice candidate for stream id " + obj.streamId);
+					console.debug(obj.candidate);
 				}
 
 				thiz.takeCandidate(obj.streamId, obj.label, obj.candidate);
