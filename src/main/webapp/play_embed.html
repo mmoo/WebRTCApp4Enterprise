@@ -69,10 +69,11 @@ video {
 		audio : false
 	};
 	
-	var websocketURL = "ws://" + location.hostname + ":5080/WebRTCAppEE/websocket";
+	var path =  location.hostname + ":" + location.port + "/WebRTCAppEE/websocket";
+	var websocketURL =  "ws://" + path;
 	
 	if (location.protocol.startsWith("https")) {
-		websocketURL = "wss://" + location.hostname + ":5443/WebRTCAppEE/websocket";
+		websocketURL = "wss://" + path;
 	}
 	
 	var webRTCAdaptor = new WebRTCAdaptor({
