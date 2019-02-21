@@ -2,25 +2,25 @@
 
 if (!String.prototype.endsWith) 
 {
-  String.prototype.endsWith = function(searchString, position) {
-      var subjectString = this.toString();
-      if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
-        position = subjectString.length;
-      }
-      position -= searchString.length;
-      var lastIndex = subjectString.lastIndexOf(searchString, position);
-      return lastIndex !== -1 && lastIndex === position;
-  };
+	String.prototype.endsWith = function(searchString, position) {
+		var subjectString = this.toString();
+		if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+			position = subjectString.length;
+		}
+		position -= searchString.length;
+		var lastIndex = subjectString.lastIndexOf(searchString, position);
+		return lastIndex !== -1 && lastIndex === position;
+	};
 }
 
 
-function tryToPlay(name, token) 
-{
+function tryToHLSPlay(name, token) {
 	fetch("streams/"+ name +"_adaptive.m3u8", {method:'HEAD'})
 	.then(function(response) {
 		if (response.status == 200) {
 			// adaptive m3u8 exists,play it
-			initializePlayer(name+"_adaptive", "m3u8", token);
+			initializeHLSPlayer(name+"_adaptive", "m3u8", token);
+
 		}
 		else 
 		{
@@ -29,7 +29,8 @@ function tryToPlay(name, token)
 			.then(function(response) {
 				if (response.status == 200) {
 					//m3u8 exists, play it
-					initializePlayer(name, "m3u8", token);
+					initializeHLSPlayer(name, "m3u8", token);
+
 				}
 				else {
 					//no m3u8 exists, try vod file
@@ -37,27 +38,33 @@ function tryToPlay(name, token)
 					.then(function(response) {
 						if (response.status == 200) {
 							//mp4 exists, play it
-							initializePlayer(name, "mp4", token);
+							initializeHLSPlayer(name, "mp4", token);
+
 						}
 						else {
 							console.log("No stream found");
-							setTimeout(function() { tryToPlay(name); }, 5000);
 							document.getElementById("video_info").innerHTML="Stream will start playing automatically<br/>when it is live";
-							
+							result = 0;
+							// It means there is no HLS stream, so try to play WebRTC stream
+							initializeWebRTCPlayer(name, token);
 
 						}
 					}).catch(function(err) {
 						console.log("Error: " + err);
+
 					});
 
 				}
 			}).catch(function(err) {
 				console.log("Error: " + err);
+
 			});
 		}
 	}).catch(function(err) {
 		console.log("Error: " + err);
+
 	});
+
 }
 
 function isMobile() { 
